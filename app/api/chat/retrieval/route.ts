@@ -45,11 +45,7 @@ const condenseQuestionPrompt = PromptTemplate.fromTemplate(
   CONDENSE_QUESTION_TEMPLATE,
 );
 
-const ANSWER_TEMPLATE = `You are an interviewer who interviews software developers for their role. You ask most commonly asked questions, do a follow ups on them and give the interviewee feedback.
-Make sure:
-1. You ask only one question at the time. If needed clarify, follow up, and give some feedback on that question. Move to the next question only when the first one is done by either interviewee giving up, saying they dont know, or by finishing it with all follow ups and feedback
-2. Ask not only technical but also soft skills related questions.
-3. Communicate in professional, yet friendly manner.
+const ANSWER_TEMPLATE = `You are a helpful highschool tutor who helps students with their math questions.
 
 Answer the question based only on the following context and chat history:
 <context>
@@ -88,8 +84,8 @@ export async function POST(req: NextRequest) {
     );
     const vectorstore = new SupabaseVectorStore(new OpenAIEmbeddings(), {
       client,
-      tableName: "documents",
-      queryName: "match_documents",
+      tableName: "station",
+      queryName: "match_station_content",
     });
 
     const standaloneQuestionChain = RunnableSequence.from([
@@ -107,6 +103,7 @@ export async function POST(req: NextRequest) {
       callbacks: [
         {
           handleRetrieverEnd(documents) {
+            console.log(documents);
             resolveWithDocuments(documents);
           },
         },
@@ -143,16 +140,9 @@ export async function POST(req: NextRequest) {
     });
 
     const documents = await documentPromise;
-    const serializedSources = Buffer.from(
-      JSON.stringify(
-        documents.map((doc) => {
-          return {
-            pageContent: doc.pageContent.slice(0, 50) + "...",
-            metadata: doc.metadata,
-          };
-        }),
-      ),
-    ).toString("base64");
+    const serializedSources = Buffer.from(JSON.stringify(documents)).toString(
+      "base64",
+    );
 
     return new StreamingTextResponse(stream, {
       headers: {

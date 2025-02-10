@@ -7,8 +7,7 @@ export default function AgentsPage() {
       endpoint="api/chat/retrieval"
       emptyStateComponent={<EmptyView />}
       showIngestForm={true}
-      placeholder={"How do I become healthy?"}
-      emoji="🐶"
+      placeholder={"Kas yra nepriklausomi įvykiai?"}
     />
   );
 }

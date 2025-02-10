@@ -32,8 +32,17 @@ export function ChatMessageBubble(props: {
             </code>
             <code className="mt-1 mr-2 bg-primary px-2 py-1 rounded text-xs">
               {props.sources?.map((source, i) => (
-                <div className="mt-2" key={"source:" + i}>
-                  {i + 1}. &quot;{source.pageContent}&quot;
+                <div
+                  className="mt-2 cursor-pointer"
+                  key={"source:" + i}
+                  onClick={() =>
+                    window.open(
+                      `https://mokinys.elicejus.lt/dashboard/1/lesson/${source.metadata?.lessonId}`,
+                      "_blank",
+                    )
+                  }
+                >
+                  {i + 1}. {source.pageContent};
                   {source.metadata?.loc?.lines !== undefined ? (
                     <div>
                       <br />

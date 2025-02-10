@@ -163,6 +163,7 @@ export function ChatWindow(props: {
         : [];
 
       const messageIndexHeader = response.headers.get("x-message-index");
+
       if (sources.length && messageIndexHeader !== null) {
         setSourcesForMessages({
           ...sourcesForMessages,
@@ -295,7 +296,7 @@ export function ChatWindow(props: {
                     <Button
                       variant="ghost"
                       className="pl-2 pr-3 -ml-2"
-                      disabled={chat.messages.length !== 0}
+                      disabled={true}
                     >
                       <Paperclip className="size-4" />
                       <span>Upload document</span>

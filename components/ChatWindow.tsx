@@ -138,7 +138,7 @@ function StickyToBottomContent(props: {
 
 export function ChatWindow(props: {
   endpoint: string;
-  emptyStateComponent: ReactNode;
+  emptyStateComponent: JSX.Element;
   placeholder?: string;
   emoji?: string;
   showIngestForm?: boolean;

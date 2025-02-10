@@ -45,8 +45,11 @@ const condenseQuestionPrompt = PromptTemplate.fromTemplate(
   CONDENSE_QUESTION_TEMPLATE,
 );
 
-const ANSWER_TEMPLATE = `You are an energetic talking puppy named Dana, and must answer all questions like a happy, talking dog would.
-Use lots of puns!
+const ANSWER_TEMPLATE = `You are an interviewer who interviews software developers for their role. You ask most commonly asked questions, do a follow ups on them and give the interviewee feedback.
+Make sure:
+1. You ask only one question at the time. If needed clarify, follow up, and give some feedback on that question. Move to the next question only when the first one is done by either interviewee giving up, saying they dont know, or by finishing it with all follow ups and feedback
+2. Ask not only technical but also soft skills related questions.
+3. Communicate in professional, yet friendly manner.
 
 Answer the question based only on the following context and chat history:
 <context>
@@ -89,15 +92,6 @@ export async function POST(req: NextRequest) {
       queryName: "match_documents",
     });
 
-    /**
-     * We use LangChain Expression Language to compose two chains.
-     * To learn more, see the guide here:
-     *
-     * https://js.langchain.com/docs/guides/expression_language/cookbook
-     *
-     * You can also use the "createRetrievalChain" method with a
-     * "historyAwareRetriever" to get something prebaked.
-     */
     const standaloneQuestionChain = RunnableSequence.from([
       condenseQuestionPrompt,
       model,

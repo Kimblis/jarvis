@@ -76,6 +76,9 @@ function ChatInput(props: {
   children?: ReactNode;
   className?: string;
 }) {
+  const maxLength = 300;
+  const remainingChars = maxLength - props.value.length;
+
   return (
     <form
       onSubmit={(e) => {
@@ -83,18 +86,24 @@ function ChatInput(props: {
         e.preventDefault();
         props.onSubmit(e);
       }}
-      className={cn("flex w-full flex-col", props.className)}
+      className={`flex w-full flex-col ${props.className || ""}`}
     >
       <div className="border border-input bg-secondary rounded-lg flex flex-col gap-2 max-w-[768px] w-full mx-auto">
         <input
           value={props.value}
           placeholder={props.placeholder}
           onChange={props.onChange}
+          maxLength={maxLength}
           className="border-none outline-none bg-transparent p-4"
         />
 
-        <div className="flex justify-between ml-4 mr-2 mb-2">
-          <div className="flex gap-3">{props.children}</div>
+        <div className="flex justify-between ml-4 mr-2 mb-2 items-center">
+          <div className="flex items-center gap-3">
+            {props.children}
+            <span className="text-sm text-muted-foreground">
+              {remainingChars} characters remaining
+            </span>
+          </div>
 
           <Button type="submit" className="self-end" disabled={props.loading}>
             {props.loading ? (

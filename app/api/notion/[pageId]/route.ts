@@ -1,5 +1,5 @@
 import { Client } from "@notionhq/client";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 
 const notion = new Client({
   auth: process.env.NOTION_API_TOKEN,
@@ -91,18 +91,24 @@ const extractTextFromBlocks = (blocks: any[]): string => {
   return allText;
 };
 
-export const GET = async (req: Request) => {
-  try {
-    const blocks = await getBlockChildrenRecursively(
-      notion,
-      "e7da250a551f463dbc9b22f980893c32",
+export const GET = async (
+  req: NextRequest,
+  { params }: { params: Promise<Record<string, string>> },
+) => {
+  const { pageId } = await params;
+
+  if (!pageId || Array.isArray(pageId)) {
+    return NextResponse.json(
+      { error: "Page ID is required and must be a single string" },
+      { status: 400 },
     );
+  }
+
+  try {
+    const blocks = await getBlockChildrenRecursively(notion, pageId);
     const text = extractTextFromBlocks(blocks);
     return NextResponse.json({ text });
-  } catch (error) {
-    return NextResponse.json(
-      { error: (error as any).message },
-      { status: 500 },
-    );
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 };

@@ -1,16 +1,21 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { ExerciseResponse } from "@/utils/types";
 import { useState } from "react";
+import Image from "next/image";
 
 const ExercisePage = () => {
-  const [text, setText] = useState<string | null>(null);
+  const [exerciseData, setExerciseData] = useState<ExerciseResponse | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [inputExerciseId, setInputExerciseId] = useState<string>("");
 
   const handleLoadExercise = async () => {
     const exerciseId = inputExerciseId.trim();
+    console.log("exerciseId", exerciseId);
     if (!exerciseId.length) {
       setError("Exercise ID is required.");
       return;
@@ -28,8 +33,35 @@ const ExercisePage = () => {
     if (!res.ok) {
       throw new Error("Failed to fetch data");
     }
-    const data = await res.json();
-    setText(data.text);
+    const data = (await res.json()) as ExerciseResponse;
+    const {
+      text,
+      solutionText,
+      solutionSkills,
+      assets,
+      condition,
+      topic,
+      template,
+      parameters,
+    } = data;
+    console.log("original text");
+    console.log(text);
+    console.log("formatted condition");
+    console.log(condition);
+    console.log("topic");
+    console.log(topic);
+    console.log("template");
+    console.log(template);
+    console.log("parameters");
+    console.log(parameters);
+    console.log("solution text");
+    console.log(solutionText);
+    console.log("skills");
+    console.log(solutionSkills);
+    console.log("assets");
+    console.log(assets);
+
+    setExerciseData(data);
   };
 
   if (isLoading) return <div>Loading exercise...</div>;
@@ -40,7 +72,7 @@ const ExercisePage = () => {
 
   return (
     <div className="flex justify-center items-center h-screen">
-      {!text?.length ? (
+      {!exerciseData ? (
         <div className="flex flex-col items-center">
           <label htmlFor="exerciseIdInput" className="mb-1">
             Exercise ID
@@ -56,7 +88,56 @@ const ExercisePage = () => {
           <Button onClick={handleLoadExercise}>Load exercise</Button>
         </div>
       ) : (
-        <div>{text}</div>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <span>Original text</span>
+            <div>{exerciseData.text}</div>
+          </div>
+          <div className="flex gap-2">
+            <span>Formatted condition</span>
+            <div>{exerciseData.condition}</div>
+          </div>
+          <div className="flex gap-2">
+            <span>Topic</span>
+            <div>{exerciseData.topic}</div>
+          </div>
+          <div className="flex gap-2">
+            <span>Template</span>
+            <div>{exerciseData.template}</div>
+          </div>
+          <div className="flex gap-2">
+            <span>Parameters</span>
+            <div>{JSON.stringify(exerciseData.parameters)}</div>
+          </div>
+          <div className="flex gap-2">
+            <span>Solution text</span>
+            <div>{exerciseData.solutionText}</div>
+          </div>
+          <div className="flex gap-2">
+            <span>Solution skills</span>
+            <div>{exerciseData.solutionSkills}</div>
+          </div>
+          <div className="flex gap-2">
+            <span>Assets</span>
+            <div>{JSON.stringify(exerciseData.assets)}</div>
+          </div>
+          {Object.entries(exerciseData.assets).map(([url, type]) => {
+            if (type === "image") {
+              return (
+                <Image
+                  key={url}
+                  src={url}
+                  className="max-w-[500px] w-auto h-auto"
+                  style={{ width: "100%", height: "auto" }}
+                  alt="Exercise asset"
+                  width={1000}
+                  height={1000}
+                />
+              );
+            }
+            return null;
+          })}
+        </div>
       )}
     </div>
   );

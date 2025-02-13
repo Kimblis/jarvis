@@ -1,4 +1,4 @@
-import { AlgebraKitSession, ResponseData } from "./types";
+import { AlgebraKitSession, ResponseData, SolutionResponse } from "./types";
 
 export const initializeAlgebraSession = async (exerciseId: string) => {
   const exercises = [{ exerciseId, version: "latest" }];
@@ -32,9 +32,7 @@ export const initializeAlgebraSession = async (exerciseId: string) => {
   return sessionId;
 };
 
-export const loadAlgebraExerciseText = async (exerciseId: string) => {
-  const sessionId = await initializeAlgebraSession(exerciseId);
-
+export const loadAlgebraExerciseText = async (sessionId: string) => {
   const sessionInfo = await fetch("https://api.algebrakit.com/session/info", {
     method: "POST",
     headers: {
@@ -64,4 +62,34 @@ export const loadAlgebraExerciseText = async (exerciseId: string) => {
   });
 
   return texts.join("\n");
+};
+
+export const loadAlgebraSolution = async (sessionId: string) => {
+  const sessionSolution = await fetch(
+    "https://api.algebrakit.com/session/solution",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ALGEBRAKIT_API_KEY as string,
+      },
+      body: JSON.stringify({
+        sessionId,
+      }),
+    },
+  );
+
+  if (!sessionSolution.ok) {
+    throw new Error(
+      `Error: ${sessionSolution.status} ${sessionSolution.statusText}`,
+    );
+  }
+
+  const data = (await sessionSolution.json()) as SolutionResponse;
+  const elements = data.data.view.elements;
+  if (!data.success || !elements) return null;
+
+  const skills = Object.keys(data.tagDescriptions);
+
+  return { elements, skills };
 };

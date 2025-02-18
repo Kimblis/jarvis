@@ -139,4 +139,73 @@ export type ExerciseResponse = {
   template: string;
   parameters: Record<string, string>;
   assets: Record<string, string>;
+  originalCondition: string;
+};
+
+export enum AlgebraExerciseState {
+  DRAFT = "DRAFT",
+  APPROVED = "APPROVED",
+}
+
+export type AlgebraKitMetadata = {
+  id: string;
+  name: string;
+  value: string;
+};
+
+export type AlgebraKitSubjectsResponse = {
+  id: string;
+  name: string;
+  metadata: AlgebraKitMetadata[];
+  children: AlgebraKitChildren[];
+};
+
+export type AlgebraKitChildren = {
+  id: string;
+  name: string;
+  type: AlgebraChildrenType;
+  metadata: AlgebraKitMetadata[];
+  state?: AlgebraExerciseState;
+};
+
+export enum AlgebraChildrenType {
+  FOLDER = "FOLDER",
+  EXERCISE = "EXERCISE",
+}
+
+export enum ExerciseType {
+  MULTISTEP = "MULTISTEP",
+  FILL_IN_THE_BLANKS = "FILL_IN_THE_BLANKS",
+  MATH_TABLE = "MATH_TABLE",
+  MODEL_METHOD = "MODEL_METHOD",
+  ARITHMETIC = "ARITHMETIC",
+  OPEN_ANSWER = "OPEN_ANSWER",
+  CHOICE = "CHOICE",
+  STATISTICS = "STATISTICS",
+  GEOMETRY = "GEOMETRY",
+  NUMBER_LINE = "NUMBER_LINE",
+  ALGEBRA = "ALGEBRA",
+  INLINE = "INLINE",
+}
+
+export enum ExerciseDifficulty {
+  NONE = "None",
+  THRESHOLD = "Threshold",
+  SATISFACTORY = "Satisfactory",
+  FUNDAMENTAL = "Fundamental",
+  HONORABLE = "Honorable",
+}
+
+export type AlgebraKitPubVersionInfo = {
+  name: string;
+  majorVersion: number | "latest";
+  minorVersion: number;
+  interactions: AlgebraKitInteractionInfo[];
+};
+
+export type AlgebraKitInteractionInfo = {
+  block: string;
+  refId: string;
+  type: ExerciseType;
+  refName: string;
 };

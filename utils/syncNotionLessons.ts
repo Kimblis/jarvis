@@ -1,8 +1,10 @@
+import { inngest } from "@/inggest/inngest.client";
 import { OpenAIEmbeddings } from "@langchain/openai";
 import { Client } from "@notionhq/client";
+import { GetPageResponse } from "@notionhq/client/build/src/api-endpoints";
 import { createClient } from "@supabase/supabase-js";
 
-const NOTION_LESSONS_DATABASEID = "3d183cc5f5b049dbb5c87c7342ee1791";
+const NOTION_LESSONS_DATABASEID = "2fc21ed7f56a473383c58032fbf4961d";
 
 const notion = new Client({
   auth: process.env.NOTION_API_TOKEN,
@@ -19,7 +21,7 @@ type Station = {
   embedding: number[];
 };
 
-type Lesson = {
+export type Lesson = {
   id: string;
   title: string;
   grade: number;
@@ -32,22 +34,29 @@ export type NotionRelation = {
   id: string;
 };
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 export const getBlockChildrenRecursively = async (blockId: string) => {
   const blocks: any[] = [];
   let hasMore = true;
   let startCursor: string | undefined | null = undefined;
 
   while (hasMore) {
-    const { results, has_more, next_cursor } =
-      await notion.blocks.children.list({
-        block_id: blockId,
-        start_cursor: startCursor ?? undefined,
-        page_size: 100,
-      });
+    try {
+      const { results, has_more, next_cursor } =
+        await notion.blocks.children.list({
+          block_id: blockId,
+          start_cursor: startCursor ?? undefined,
+          page_size: 100,
+        });
 
-    blocks.push(...results);
-    hasMore = has_more;
-    startCursor = next_cursor;
+      blocks.push(...results);
+      hasMore = has_more;
+      startCursor = next_cursor;
+    } catch (error) {
+      console.log(`error`, error);
+      break;
+    }
   }
 
   for (const block of blocks) {
@@ -119,26 +128,112 @@ export const extractTextFromBlocks = (blocks: any[]): string => {
   return allText;
 };
 
-const syncNotionStations = async (
+export const syncNotionStationsBatched = async (
+  stationPageIds: string[],
+  lessonId: string,
+  batchSize: number = 3,
+) => {
+  const databaseStations = await supabaseClient
+    .from("station")
+    .select("notionPageId")
+    .in("notionPageId", stationPageIds);
+  const databaseStationNotionPageIds = databaseStations.data?.map(
+    (station) => station.notionPageId,
+  );
+  const filteredStationPageIds = stationPageIds.filter(
+    (stationPageId) => !databaseStationNotionPageIds?.includes(stationPageId),
+  );
+
+  for (let i = 0; i < filteredStationPageIds.length; i += batchSize) {
+    const batch = filteredStationPageIds.slice(i, i + batchSize);
+    await Promise.all(
+      batch.map(async (stationPageId) => {
+        console.log(`syncing station ${stationPageId}`);
+        const response = await notion.pages.retrieve({
+          page_id: stationPageId,
+        });
+        const { properties } = response as any;
+        const id: string = properties.Id?.formula?.string;
+        const title: string =
+          properties.Pavadinimas?.title[0]?.plain_text ||
+          `Unknown station${id}`;
+        const nuggetPageIds: string[] = properties.Dalys?.relation.map(
+          (relation: NotionRelation) => relation.id,
+        );
+        const textNuggets: string[] = [];
+
+        await Promise.all(
+          nuggetPageIds.map(async (nuggetPageId) => {
+            let nuggetResponse: GetPageResponse;
+            try {
+              nuggetResponse = await notion.pages.retrieve({
+                page_id: nuggetPageId,
+              });
+            } catch (error) {
+              const baseDelay = 5000;
+              const jitter = Math.random() * 15000; // up to 15 second of random delay jitter
+              console.log(
+                `retrieved error, will sleep for: ${(baseDelay + jitter) / 1000}s`,
+              );
+              await sleep(baseDelay + jitter);
+              nuggetResponse = await notion.pages.retrieve({
+                page_id: nuggetPageId,
+              });
+            }
+            const nuggetProperties = (nuggetResponse as any).properties;
+            const nuggetType = nuggetProperties.Tipas?.select?.name;
+            const nuggetTitle: string =
+              nuggetProperties.Pavadinimas?.title?.[0]?.plain_text || "";
+            const isTextNugget =
+              nuggetType == "Content" &&
+              !nuggetTitle.toUpperCase().includes("VIDEO");
+            if (!isTextNugget) return;
+            const blocks = await getBlockChildrenRecursively(nuggetPageId);
+            const text = extractTextFromBlocks(blocks);
+            textNuggets.push(text);
+          }),
+        );
+
+        const text = textNuggets.join("\n");
+        const embeddingsModel = new OpenAIEmbeddings();
+        const embeddingVector = await embeddingsModel.embedQuery(text);
+        console.log(
+          `created embedding vector for ${title}, vector length: ${embeddingVector.length}`,
+        );
+        await supabaseClient.from("station").upsert(
+          {
+            id,
+            title,
+            lessonId,
+            embedding: embeddingVector,
+          },
+          { onConflict: "id" },
+        );
+      }),
+    );
+  }
+};
+
+export const syncNotionStations = async (
   stationPageIds: string[],
   lessonId: string,
 ) => {
-  const lessonStations = await supabaseClient
+  const databaseStations = await supabaseClient
     .from("station")
     .select("id")
-    .eq("lessonId", lessonId);
-  const lessonStationsIds = lessonStations.data?.map((station) => station.id);
-  console.log(`lessonStationsIds: ${lessonStationsIds}`);
-  console.log(`stationPageIds: ${stationPageIds}`);
+    .in("notionPageId", stationPageIds);
+  const databaseStationIds = databaseStations.data?.map(
+    (station) => station.id,
+  );
+  const filteredStationPageIds = stationPageIds.filter(
+    (stationPageId) => !databaseStationIds?.includes(stationPageId),
+  );
 
-  for (const stationPageId of stationPageIds) {
+  for (const stationPageId of filteredStationPageIds) {
+    console.log(`syncing station ${stationPageId}`);
     const response = await notion.pages.retrieve({ page_id: stationPageId });
     const { properties } = response as any;
     const id: string = properties.Id?.formula?.string;
-    if (lessonStationsIds?.includes(id)) {
-      console.log(`id: ${id} is already in database, continue`);
-      continue;
-    }
     const title: string =
       properties.Pavadinimas?.title[0]?.plain_text || `Unknown station${id}`;
     const nuggetPageIds: string[] = properties.Dalys?.relation.map(
@@ -146,9 +241,22 @@ const syncNotionStations = async (
     );
     const textNuggets: string[] = [];
     for (const nuggetPageId of nuggetPageIds) {
-      const nuggetResponse = await notion.pages.retrieve({
-        page_id: nuggetPageId,
-      });
+      let nuggetResponse: GetPageResponse;
+      try {
+        nuggetResponse = await notion.pages.retrieve({
+          page_id: nuggetPageId,
+        });
+      } catch (error) {
+        const baseDelay = 5000;
+        const jitter = Math.random() * 15000; // up to 15 second of random delay jitter
+        console.log(
+          `retrieved error, will sleep for: ${(baseDelay + jitter) / 1000}s`,
+        );
+        await sleep(baseDelay + jitter);
+        nuggetResponse = await notion.pages.retrieve({
+          page_id: nuggetPageId,
+        });
+      }
       const nuggetProperties = (nuggetResponse as any).properties;
       const nuggetType = nuggetProperties.Tipas?.select?.name;
       const nuggetTitle: string =
@@ -166,16 +274,20 @@ const syncNotionStations = async (
     console.log(
       `created embedding vector for ${title}, vector length: ${embeddingVector.length}`,
     );
-    await supabaseClient.from("station").upsert({
-      id,
-      title,
-      lessonId,
-      embedding: embeddingVector,
-    });
+    await supabaseClient.from("station").upsert(
+      {
+        id,
+        title,
+        lessonId,
+        embedding: embeddingVector,
+        notionPageId: stationPageId,
+      },
+      { onConflict: "id" },
+    );
   }
 };
 
-const syncNotionLessons = async () => {
+export const syncNotionLessons = async () => {
   let hasMore = true;
   let nextCursor: string | undefined = undefined;
   const lessons: Lesson[] = [];
@@ -185,6 +297,7 @@ const syncNotionLessons = async () => {
       database_id: NOTION_LESSONS_DATABASEID,
       start_cursor: nextCursor,
     });
+
     lessons.push(
       ...response.results.map((result) => {
         const { properties, id: notionPageId } = result as any;
@@ -211,19 +324,21 @@ const syncNotionLessons = async () => {
     nextCursor = response.next_cursor as string;
   }
 
-  await Promise.all(
-    lessons.map(async (lesson) => {
-      await supabaseClient.from("lesson").upsert({
-        id: lesson.id,
-        title: lesson.title,
-        grade: lesson.grade,
-        notionPageId: lesson.notionPageId,
-        stationPageIds: lesson.stationPageIds,
-      });
+  const totalBatches = Math.ceil(lessons.length / 10);
+  const halfBatch = Math.floor(totalBatches / 2);
 
-      return syncNotionStations(lesson.stationPageIds, lesson.id);
-    }),
-  );
+  for (let i = 0; i < lessons.length; i += 10) {
+    const batchNumber = i / 10 + 1; // Human-friendly batch numbering (1-indexed)
+    console.log(`sending batch ${batchNumber} of ${totalBatches}`);
+    const batch = lessons.slice(i, i + 10);
+    await inngest.send({
+      name: "sync/notion.lessons.batch",
+      data: { lessons: batch },
+    });
+    const isHalfWayBatch = batchNumber === halfBatch;
+    const sleepDuration = isHalfWayBatch ? 10 * 60 * 1000 : 6 * 60 * 1000; // 10 minutes if half of the batches are finished, 6 minutes if not
+    await sleep(sleepDuration);
+  }
 };
 
 export const syncNotionLessonByPageId = async (pageId: string) => {
@@ -237,14 +352,12 @@ export const syncNotionLessonByPageId = async (pageId: string) => {
     (relation: NotionRelation) => relation.id,
   );
 
-  console.log("will try to add lesson to database");
   await supabaseClient.from("lesson").upsert({
     id,
     title,
     grade,
     notionPageId: pageId,
   });
-  console.log("lesson added to database");
 
   return syncNotionStations(stationPageIds, id);
 };

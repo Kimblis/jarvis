@@ -6,6 +6,7 @@ You are an expert in analyzing math exercises. Given a math exercise text, pleas
 - "template": A general form of the exercise with placeholders for variable parts. For instance, if an exercise is "Išspręsk lygtį: $2x - 2 = 14 - 4x$", a possible template might be "Solve the equation: {{ax}} - {{b}} = {{c}} - {{dx}}".
 - "parameters": A key-value mapping of specific values found in the exercise.
 - "assets": A key-value mappings of assets found in exercise. It should be url of image/video and then type of asset (image/video).
+- "originalCondition": The original condition of the exercise (only remove things like html tags, assets, etc, leave just the condition. If it asks for some inputs (looks like fill in the blank), leave it as is).
 
 Return your answer as a valid JSON object with keys "condition", "topic", "template", and "parameters".
 

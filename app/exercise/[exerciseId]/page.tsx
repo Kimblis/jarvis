@@ -1,71 +1,79 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { ExerciseResponse } from "@/utils/types";
-import { useState } from "react";
 import Image from "next/image";
 
-const ExercisePage = () => {
+const ExercisePageById = () => {
+  const { exerciseId } = useParams();
   const [exerciseData, setExerciseData] = useState<ExerciseResponse | null>(
     null,
   );
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [inputExerciseId, setInputExerciseId] = useState<string>("");
 
-  const handleLoadExercise = async () => {
-    const exerciseId = inputExerciseId.trim();
-    console.log("exerciseId", exerciseId);
-    if (!exerciseId.length) {
-      setError("Exercise ID is required.");
+  useEffect(() => {
+    if (!exerciseId) {
+      setError("No Exercise ID provided");
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-    const res = await fetch(`/api/exercise/${exerciseId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    setIsLoading(false);
-    if (!res.ok) {
-      throw new Error("Failed to fetch data");
-    }
-    const data = (await res.json()) as ExerciseResponse;
-    const {
-      text,
-      solutionText,
-      solutionSkills,
-      assets,
-      condition,
-      topic,
-      template,
-      parameters,
-      originalCondition,
-    } = data;
-    console.log("original text");
-    console.log(text);
-    console.log("formatted condition");
-    console.log(condition);
-    console.log("topic");
-    console.log(topic);
-    console.log("template");
-    console.log(template);
-    console.log("parameters");
-    console.log(parameters);
-    console.log("solution text");
-    console.log(solutionText);
-    console.log("skills");
-    console.log(solutionSkills);
-    console.log("assets");
-    console.log(assets);
-    console.log("original condition");
-    console.log(originalCondition);
+    const fetchExerciseData = async () => {
+      setIsLoading(true);
+      try {
+        // Call the API route using fetch
+        const res = await fetch(`/api/exercise/${exerciseId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (!res.ok) {
+          throw new Error(`Failed to fetch data: ${res.statusText}`);
+        }
+        const data = (await res.json()) as ExerciseResponse;
+        const {
+          text,
+          solutionText,
+          solutionSkills,
+          assets,
+          condition,
+          topic,
+          template,
+          parameters,
+          originalCondition,
+        } = data;
+        console.log("original text");
+        console.log(text);
+        console.log("formatted condition");
+        console.log(condition);
+        console.log("topic");
+        console.log(topic);
+        console.log("template");
+        console.log(template);
+        console.log("parameters");
+        console.log(parameters);
+        console.log("solution text");
+        console.log(solutionText);
+        console.log("skills");
+        console.log(solutionSkills);
+        console.log("assets");
+        console.log(assets);
+        console.log("original condition");
+        console.log(originalCondition);
 
-    setExerciseData(data);
-  };
+        setExerciseData(data);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Fetch data when the component mounts
+    fetchExerciseData();
+  }, [exerciseId]);
 
   if (isLoading) return <div>Loading exercise...</div>;
 
@@ -74,23 +82,8 @@ const ExercisePage = () => {
   }
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      {!exerciseData ? (
-        <div className="flex flex-col items-center">
-          <label htmlFor="exerciseIdInput" className="mb-1">
-            Exercise ID
-          </label>
-          <input
-            id="exerciseIdInput"
-            type="text"
-            value={inputExerciseId}
-            onChange={(e) => setInputExerciseId(e.target.value)}
-            placeholder="e.g. 0008582e-adec-4770-9145-2473d551325a"
-            className="border rounded p-2 mb-4"
-          />
-          <Button onClick={handleLoadExercise}>Load exercise</Button>
-        </div>
-      ) : (
+    <div>
+      {exerciseData && (
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
             <span>Original text</span>
@@ -150,4 +143,4 @@ const ExercisePage = () => {
   );
 };
 
-export default ExercisePage;
+export default ExercisePageById;

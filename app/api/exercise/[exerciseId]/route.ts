@@ -52,7 +52,6 @@ export const POST = async (
     const response = await chain.invoke({ exerciseText });
 
     const parsedResponse = JSON.parse(response.content as string);
-    console.log(parsedResponse);
 
     // const embeddings = new OpenAIEmbeddings();
     // const embeddingVector = await embeddings.embedQuery(

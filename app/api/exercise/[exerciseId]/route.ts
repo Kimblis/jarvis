@@ -33,7 +33,7 @@ export const POST = async (
 
   try {
     const sessionId = await initializeAlgebraSession(exerciseId);
-    console.log(`sessionId: ${sessionId}`);
+
     const exerciseText = await loadAlgebraExerciseText(sessionId);
     const solutionElementsWithSkills = await loadAlgebraSolution(sessionId);
     let solutionText = "";

@@ -4481,9 +4481,9 @@ __metadata:
     tailwindcss: 3.3.3
     tailwindcss-animate: ^1.0.7
     typescript: 5.1.6
+    undici: ^7.3.0
     use-stick-to-bottom: ^1.0.44
     vaul: ^1.1.2
-    zod: ^3.23.8
     zod-to-json-schema: ^3.23.2
   languageName: unknown
   linkType: soft
@@ -6772,6 +6772,13 @@ __metadata:
   version: 6.20.0
   resolution: "undici-types@npm:6.20.0"
   checksum: b7bc50f012dc6afbcce56c9fd62d7e86b20a62ff21f12b7b5cbf1973b9578d90f22a9c7fe50e638e96905d33893bf2f9f16d98929c4673c2480de05c6c96ea8b
+  languageName: node
+  linkType: hard
+
+"undici@npm:^7.3.0":
+  version: 7.3.0
+  resolution: "undici@npm:7.3.0"
+  checksum: 5cf37a51d1449370c7c936fdfefb6be907a59af2829520475a837e81fe709771cf678428fe6beb4c80b168da0570496d13b2ecbf6f52211f844b2a360c6fc6e0
   languageName: node
   linkType: hard
 

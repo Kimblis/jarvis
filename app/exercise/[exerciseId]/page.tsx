@@ -33,35 +33,6 @@ const ExercisePageById = () => {
           throw new Error(`Failed to fetch data: ${res.statusText}`);
         }
         const data = (await res.json()) as ExerciseResponse;
-        const {
-          text,
-          solutionText,
-          solutionSkills,
-          assets,
-          condition,
-          topic,
-          template,
-          parameters,
-          originalCondition,
-        } = data;
-        console.log("original text");
-        console.log(text);
-        console.log("formatted condition");
-        console.log(condition);
-        console.log("topic");
-        console.log(topic);
-        console.log("template");
-        console.log(template);
-        console.log("parameters");
-        console.log(parameters);
-        console.log("solution text");
-        console.log(solutionText);
-        console.log("skills");
-        console.log(solutionSkills);
-        console.log("assets");
-        console.log(assets);
-        console.log("original condition");
-        console.log(originalCondition);
 
         setExerciseData(data);
       } catch (error: any) {

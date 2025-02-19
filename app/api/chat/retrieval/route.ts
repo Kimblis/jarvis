@@ -103,7 +103,6 @@ export async function POST(req: NextRequest) {
       callbacks: [
         {
           handleRetrieverEnd(documents) {
-            console.log(documents);
             resolveWithDocuments(documents);
           },
         },

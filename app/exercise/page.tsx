@@ -15,7 +15,6 @@ const ExercisePage = () => {
 
   const handleLoadExercise = async () => {
     const exerciseId = inputExerciseId.trim();
-    console.log("exerciseId", exerciseId);
     if (!exerciseId.length) {
       setError("Exercise ID is required.");
       return;
@@ -34,35 +33,6 @@ const ExercisePage = () => {
       throw new Error("Failed to fetch data");
     }
     const data = (await res.json()) as ExerciseResponse;
-    const {
-      text,
-      solutionText,
-      solutionSkills,
-      assets,
-      condition,
-      topic,
-      template,
-      parameters,
-      originalCondition,
-    } = data;
-    console.log("original text");
-    console.log(text);
-    console.log("formatted condition");
-    console.log(condition);
-    console.log("topic");
-    console.log(topic);
-    console.log("template");
-    console.log(template);
-    console.log("parameters");
-    console.log(parameters);
-    console.log("solution text");
-    console.log(solutionText);
-    console.log("skills");
-    console.log(solutionSkills);
-    console.log("assets");
-    console.log(assets);
-    console.log("original condition");
-    console.log(originalCondition);
 
     setExerciseData(data);
   };

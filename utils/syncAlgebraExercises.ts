@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { Agent, setGlobalDispatcher } from "undici";
 import {
   AlgebraChildrenType,
   AlgebraExerciseState,
@@ -7,6 +8,8 @@ import {
   AlgebraKitSession,
   AlgebraKitSubjectsResponse,
   ExerciseDifficulty,
+  ExerciseResponse,
+  exerciseResponseSchema,
   ExerciseType,
   ResponseData,
   SolutionResponse,
@@ -18,11 +21,17 @@ import {
   solutionPromptTemplateStr,
 } from "./prompts";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
+import { z } from "zod";
 
 const supabaseClient = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_PRIVATE_KEY!,
 );
+
+const agent = new Agent({
+  connect: { timeout: 30000 },
+});
+setGlobalDispatcher(agent);
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -71,7 +80,9 @@ export const loadAlgebraExerciseText = async (sessionId: string) => {
   });
 
   if (!sessionInfo.ok) {
-    throw new Error(`Error: ${sessionInfo.status} ${sessionInfo.statusText}`);
+    throw new Error(
+      `Error: ${sessionInfo.status} ${sessionInfo.statusText}, sessionId: ${sessionId}`,
+    );
   }
 
   const data = (await sessionInfo.json()) as ResponseData;
@@ -147,7 +158,7 @@ const retrieveFoldersBySubjectId = async (subjectId: string) => {
 
   return (
     (data as AlgebraKitSubjectsResponse)?.children?.filter(
-      (child: { type: string }) => child.type === AlgebraChildrenType.EXERCISE,
+      (child: { type: string }) => child.type === AlgebraChildrenType.FOLDER,
     ) || []
   );
 };
@@ -217,7 +228,7 @@ const parseTags = (input: string): string[] => {
 const retrieveExerciseType = async (
   exerciseId: string,
 ): Promise<ExerciseType[]> => {
-  const sessionInfo = await fetch(
+  const publishedInfo = await fetch(
     "https://api.algebrakit.com/exercise/published-info",
     {
       method: "POST",
@@ -226,16 +237,18 @@ const retrieveExerciseType = async (
         "x-api-key": process.env.ALGEBRAKIT_API_KEY as string,
       },
       body: JSON.stringify({
-        exerciseId,
+        id: exerciseId,
       }),
     },
   );
 
-  if (!sessionInfo.ok) {
-    throw new Error(`Error: ${sessionInfo.status} ${sessionInfo.statusText}`);
+  if (!publishedInfo.ok) {
+    throw new Error(
+      `Error: ${publishedInfo.status} ${publishedInfo.statusText}, exerciseId: ${exerciseId}`,
+    );
   }
 
-  const data = await sessionInfo.json();
+  const data = await publishedInfo.json();
 
   const publishedVersions =
     data?.publishedVersions as AlgebraKitPubVersionInfo[];
@@ -258,7 +271,7 @@ const retrieveExerciseAIData = async (exerciseId: string) => {
   let solutionText = "";
   if (solutionElementsWithSkills?.elements.length) {
     const prompt = ChatPromptTemplate.fromTemplate(solutionPromptTemplateStr);
-    const llm = new ChatOpenAI({ temperature: 0 });
+    const llm = new ChatOpenAI({ temperature: 0, model: "gpt-4o-2024-08-06" });
     const chain = prompt.pipe(llm);
     const response = await chain.invoke({
       sessionJson: JSON.stringify(solutionElementsWithSkills.elements),
@@ -266,13 +279,20 @@ const retrieveExerciseAIData = async (exerciseId: string) => {
     solutionText = response.content as string;
   }
   const prompt = ChatPromptTemplate.fromTemplate(exercisePromptTemplateStr);
-  const llm = new ChatOpenAI({ temperature: 0 });
+  const llm = new ChatOpenAI({
+    temperature: 0,
+    model: "gpt-4o-2024-08-06",
+  }).withStructuredOutput(exerciseResponseSchema, {
+    method: "jsonSchema",
+    strict: true,
+  });
   const chain = prompt.pipe(llm);
   const response = await chain.invoke({ exerciseText });
 
-  const parsedResponse = JSON.parse(response.content as string);
-
-  const formattedResponse = { ...parsedResponse, solution: solutionText };
+  const formattedResponse = {
+    ...response,
+    solution: solutionText,
+  };
 
   const embeddings = new OpenAIEmbeddings();
   const embeddingVector = await embeddings.embedQuery(
@@ -331,8 +351,18 @@ const seedAlgebraExercises = async (
         return;
       }
 
-      const exerciseMetadata = { tags, difficultyLevel, isALevel, isHidden };
+      const exerciseMetadata = {
+        tags,
+        difficultyLevel,
+        isALevel,
+        isHidden,
+        exerciseTypes,
+      };
       const aiData = await retrieveExerciseAIData(id);
+      if (!aiData) {
+        console.log(`not gonna insert exercise ${id} because aiData is null`);
+        return;
+      }
 
       await supabaseClient.from("exercise").upsert(
         {
@@ -363,21 +393,32 @@ const retrieveStationAndNuggetExercises = async (
 };
 
 export const syncAlgebraExercises = async () => {
-  const courseIds = ["1", "2"];
+  const courseIds = [
+    "656256bc-8baf-4720-b6bc-44db87b5dfd7",
+    // "bea29669-03bf-48a3-981e-e905ed305cb5",
+    // "13103c80-b43c-4833-be2c-72585a548dfd",
+    // "8a79ddc2-d0a3-486e-863c-272ea5f7cf49",
+    // "e34fd4db-0773-4b9b-a52f-7ec5cbf1ac3e",
+    // "b6947437-3472-49de-b8fe-5ab9bdf00209",
+  ];
 
   for (const courseId of courseIds) {
     await inngest.send({
       name: "sync/algebra.course.batch",
       data: { courseId },
     });
-    await sleep(50000);
+    // await sleep(5 * 60 * 1000);
   }
 };
 
 export const syncAlgebraCourseExercises = async (
   algebrakitSubjectId: string,
 ) => {
+  console.log(`syncing course ${algebrakitSubjectId}`);
   const stationFolders = await retrieveAlgebrakitStations(algebrakitSubjectId);
+  console.log(
+    `for course: ${algebrakitSubjectId} found ${stationFolders.length} total station folders`,
+  );
   const stationIds = stationFolders
     .map(({ metadata }) => metadata[0]?.value)
     .filter((stationId): stationId is string => !!stationId);
@@ -395,6 +436,8 @@ export const syncAlgebraCourseExercises = async (
     const stationId = stationFolder.metadata[0]?.value;
     return stationId && databaseStationIds?.includes(stationId);
   });
+
+  console.log(`found ${filteredStationFolders.length} stations to sync`);
 
   for (let i = 0; i < filteredStationFolders.length; i += 20) {
     console.log(`sending batch ${i} of ${filteredStationFolders.length}`);

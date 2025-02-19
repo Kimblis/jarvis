@@ -29,14 +29,12 @@ export const GET = async (
 };
 
 export const POST = async () => {
-  console.log("POST request received");
-
   try {
-    // await inngest.send({
-    //   id: "notion-sync",
-    //   name: "sync/notion",
-    // });
-    await syncNotionLessons();
+    await inngest.send({
+      id: "notion-sync",
+      name: "sync/notion",
+    });
+
     return NextResponse.json(
       { message: "Synchronizacija suzadinta" },
       { status: 200 },

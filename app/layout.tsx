@@ -25,6 +25,7 @@ export default function RootLayout({
             <div className="flex gap-4 flex-col md:flex-row md:items-center">
               <nav className="flex gap-1 flex-col md:flex-row">
                 <ActiveLink href="/">Jarvis</ActiveLink>
+                <ActiveLink href="/assessments">Assessments</ActiveLink>
               </nav>
             </div>
           </div>

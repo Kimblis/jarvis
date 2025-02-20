@@ -6,7 +6,6 @@ export default function AgentsPage() {
     <ChatWindow
       endpoint="api/chat/retrieval"
       emptyStateComponent={<EmptyView />}
-      showIngestForm={true}
       placeholder={"Kas yra nepriklausomi įvykiai?"}
     />
   );

@@ -3,11 +3,25 @@ import type { Message } from "ai/react";
 import { cn } from "@/utils/cn";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
-export function IntermediateStep(props: { message: Message }) {
-  const parsedInput = JSON.parse(props.message.content);
-  const action = parsedInput.action;
-  const observation = parsedInput.observation;
+interface IntermediateStepProps {
+  message: Message;
+}
+
+type ParsedInput = {
+  action: {
+    name: string;
+    args: Record<string, any>;
+  };
+  observation: string;
+};
+
+export const IntermediateStep = ({ message }: IntermediateStepProps) => {
   const [expanded, setExpanded] = useState(false);
+
+  const parsedInput = JSON.parse(message.content) as ParsedInput;
+
+  const { action, observation } = parsedInput;
+
   return (
     <div className="mr-auto bg-secondary border border-input rounded p-3 max-w-[80%] mb-8 whitespace-pre-wrap flex flex-col">
       <button
@@ -57,4 +71,4 @@ export function IntermediateStep(props: { message: Message }) {
       </div>
     </div>
   );
-}
+};

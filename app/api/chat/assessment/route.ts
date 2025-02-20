@@ -12,8 +12,13 @@ import {
   BytesOutputParser,
   StringOutputParser,
 } from "@langchain/core/output_parsers";
-import { ANSWER_TEMPLATE, CONDENSE_QUESTION_TEMPLATE } from "@/utils/templates";
+import {
+  ANSWER_TEMPLATE,
+  ASSESSMENT_TEMPLATE,
+  CONDENSE_QUESTION_TEMPLATE,
+} from "@/utils/templates";
 import { combineDocumentsFn, formatVercelMessages } from "@/utils/messageUtils";
+import { AssessmentState } from "@/utils/types";
 
 export const runtime = "edge";
 
@@ -21,29 +26,69 @@ const condenseQuestionPrompt = PromptTemplate.fromTemplate(
   CONDENSE_QUESTION_TEMPLATE,
 );
 
-const answerPrompt = PromptTemplate.fromTemplate(ANSWER_TEMPLATE);
+const answerPrompt = PromptTemplate.fromTemplate(ASSESSMENT_TEMPLATE);
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const messages = body.messages ?? [];
     const previousMessages = messages.slice(0, -1);
+    const data = body.data ?? {};
+    console.log("data", data);
+    const grade = data.grade;
+    const assessmentState = data.assessmentState;
+    console.log("assessmentState", assessmentState);
     const currentMessageContent = messages[messages.length - 1].content;
 
     const model = new ChatOpenAI({
       model: "gpt-4o-mini",
-      temperature: 0.2,
+      temperature: 0.001,
     });
+
+    if (assessmentState === AssessmentState.INITIALIZATION) {
+      console.log(" im here");
+      return new Response("Please enter your grade (5-12).", {
+        headers: {
+          "x-message-index": (messages.length + 1).toString(),
+        },
+      });
+    }
+
+    if (assessmentState === AssessmentState.GRADE_SELECTION) {
+      if (typeof grade !== "number" || grade < 5 || grade > 12)
+        return new Response("Enter a valid grade (5-12).", {
+          headers: {
+            "x-message-index": (messages.length + 1).toString(),
+          },
+        });
+
+      return new Response(
+        `Great, you are in grade ${grade}. Let's continue with the assessment. Once you're ready just tell me and we gonna get started. When you wanna finish the test just tell me "I'm done" or "I'm finished"`,
+        {
+          headers: {
+            "x-message-index": (messages.length + 1).toString(),
+          },
+        },
+      );
+    }
 
     const client = createClient(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_PRIVATE_KEY!,
     );
-    const vectorstore = new SupabaseVectorStore(new OpenAIEmbeddings(), {
-      client,
-      tableName: "station",
-      queryName: "match_station_content",
-    });
+    const exerciseVectorStore = new SupabaseVectorStore(
+      new OpenAIEmbeddings(),
+      {
+        client,
+        tableName: "exercise",
+        queryName: "match_exercise",
+      },
+    );
+
+    const exerciseRetriever = exerciseVectorStore.asRetriever();
+    const documents: Document[] = await exerciseRetriever.invoke(
+      `grade ${grade}`,
+    );
 
     const standaloneQuestionChain = RunnableSequence.from([
       condenseQuestionPrompt,
@@ -51,28 +96,11 @@ export async function POST(req: NextRequest) {
       new StringOutputParser(),
     ]);
 
-    let resolveWithDocuments: (value: Document[]) => void;
-    const documentPromise = new Promise<Document[]>((resolve) => {
-      resolveWithDocuments = resolve;
-    });
-
-    const retriever = vectorstore.asRetriever({
-      callbacks: [
-        {
-          handleRetrieverEnd(documents) {
-            resolveWithDocuments(documents);
-          },
-        },
-      ],
-    });
-
-    const retrievalChain = retriever.pipe(combineDocumentsFn);
-
     const answerChain = RunnableSequence.from([
       {
         context: RunnableSequence.from([
           (input) => input.question,
-          retrievalChain,
+          exerciseRetriever,
         ]),
         chat_history: (input) => input.chat_history,
         question: (input) => input.question,
@@ -95,7 +123,6 @@ export async function POST(req: NextRequest) {
       chat_history: formatVercelMessages(previousMessages),
     });
 
-    const documents = await documentPromise;
     const serializedSources = Buffer.from(JSON.stringify(documents)).toString(
       "base64",
     );

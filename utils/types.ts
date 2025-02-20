@@ -242,3 +242,23 @@ export const exerciseResponseSchema = z.object({
       `The original condition of the exercise with any extraneous tags, styles, or non-essential content removed. If the exercise includes input fields (e.g., fill in the blanks), append them at the end of the condition separated by spaces using the format "{{input1}} {{input2}} {{input3}}`,
     ),
 });
+
+export enum AssessmentState {
+  INITIALIZATION = "INITIALIZATION",
+  GRADE_SELECTION = "GRADE_SELECTION",
+  ASSESSMENT_IN_PROGRESS = "ASSESSMENT_IN_PROGRESS",
+  ASSESSMENT_COMPLETED = "ASSESSMENT_COMPLETED",
+}
+
+export type SourceMetadata = {
+  lessonId: string;
+  stationId: string;
+  lessonTitle: string;
+  stationTitle: string;
+  similarity: string;
+};
+
+export type Source = {
+  metadata: SourceMetadata;
+  pageContent: string;
+};

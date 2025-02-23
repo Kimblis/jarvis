@@ -1,5 +1,7 @@
 {
-  "name": "langchain-nextjs-template",
+  "name": "jarvis-ai",
+  "description": "Jarvis AI is a chatbot that uses LangChain and Next.js",
+  "author": "Edgaras Masilionis",
   "version": "0.0.0",
   "private": true,
   "packageManager": "yarn@3.5.1",

@@ -271,7 +271,7 @@ const retrieveExerciseAIData = async (exerciseId: string) => {
   let solutionText = "";
   if (solutionElementsWithSkills?.elements.length) {
     const prompt = ChatPromptTemplate.fromTemplate(solutionPromptTemplateStr);
-    const llm = new ChatOpenAI({ temperature: 0, model: "gpt-4o-2024-08-06" });
+    const llm = new ChatOpenAI({ temperature: 0 });
     const chain = prompt.pipe(llm);
     const response = await chain.invoke({
       sessionJson: JSON.stringify(solutionElementsWithSkills.elements),

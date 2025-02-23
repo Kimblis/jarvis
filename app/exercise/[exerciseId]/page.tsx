@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ExerciseResponse } from "@/utils/types";
 import Image from "next/image";
+import Latex from "react-latex-next";
 
 const ExercisePageById = () => {
   const { exerciseId } = useParams();
@@ -52,43 +53,49 @@ const ExercisePageById = () => {
     return <div>Error: {error}</div>;
   }
 
+  const solutionSteps = exerciseData?.solutionText.split("{step}");
+
   return (
     <div>
       {exerciseData && (
         <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-1">
             <span>Original text</span>
             <div>{exerciseData.text}</div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-1">
             <span>Formatted condition</span>
-            <div>{exerciseData.condition}</div>
+            <Latex>{exerciseData.condition}</Latex>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-1">
             <span>Topic</span>
             <div>{exerciseData.topic}</div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-1">
             <span>Template</span>
-            <div>{exerciseData.template}</div>
+            <Latex>{exerciseData.template}</Latex>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-1">
             <span>Parameters</span>
             <div>{JSON.stringify(exerciseData.parameters)}</div>
           </div>
-          <div className="flex gap-2">
-            <span>Solution text</span>
-            <div>{exerciseData.solutionText}</div>
+          <div className="flex flex-col gap-1">
+            <span>Solution</span>
+            <div className="flex flex-col gap-1">
+              {solutionSteps?.map((step, index) => (
+                <Latex key={index}>{step}</Latex>
+              ))}
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-1">
             <span>Solution skills</span>
             <div>{exerciseData.solutionSkills}</div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-1">
             <span>Original condition</span>
-            <div>{exerciseData.originalCondition}</div>
+            <Latex>{exerciseData.originalCondition}</Latex>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-1">
             <span>Assets</span>
             <div>{JSON.stringify(exerciseData.assets)}</div>
           </div>

@@ -1,4 +1,6 @@
 import "./globals.css";
+import "katex/dist/katex.min.css";
+
 import { Public_Sans } from "next/font/google";
 import { ActiveLink } from "@/components/Navbar";
 import { Toaster } from "@/components/ui/sonner";

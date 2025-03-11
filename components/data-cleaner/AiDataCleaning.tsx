@@ -93,20 +93,19 @@ export const AiDataCleaning: React.FC = () => {
     isDataLoaded,
     flaggedRows,
     setFlaggedRows,
+    setTokenUsage,
+    tokenUsage,
   } = useDataCleaner();
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<Analysis | null>(null);
   const [actionsPerformed, setActionsPerformed] = useState<Action[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
-
   // Add new state for animation texts
   const [analysisPhase, setAnalysisPhase] = useState<string>("idle");
 
   // Add error message state
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  console.log(processedData);
-  console.log(flaggedRows);
 
   const analysisTexts = [
     "Analyzing your data structure...",
@@ -133,9 +132,6 @@ export const AiDataCleaning: React.FC = () => {
 
   // Start AI analysis with animation updates
   const startAnalysis = async () => {
-    console.log("calling startAnalysis");
-    // Prevent multiple submissions
-
     if (!isDataLoaded || !rawData.length) return;
 
     setIsAnalyzing(true);
@@ -165,29 +161,24 @@ export const AiDataCleaning: React.FC = () => {
       // Parse the response
       const result = await response.json();
 
+      if (result.error) {
+        setErrorMessage(result.error);
+        setAnalysisPhase("error");
+        return;
+      }
+
       // Check if we have data
       if (!result || !result.actionsPerformed) {
         setAnalysisPhase("error");
         return;
       }
 
-      // Update processed data with organizations
-      if (result.processedOrganizations) {
+      if (result.processedOrganizations)
         setProcessedData(result.processedOrganizations);
-      }
-
-      // Update analysis result
-      if (result.analysis) {
-        setAnalysisResult(result.analysis);
-      }
-
-      if (result.flaggedRows) {
-        setFlaggedRows(result.flaggedRows);
-      }
-
-      if (result.actionsPerformed) {
-        setActionsPerformed(result.actionsPerformed);
-      }
+      if (result.analysis) setAnalysisResult(result.analysis);
+      if (result.flaggedRows) setFlaggedRows(result.flaggedRows);
+      if (result.actionsPerformed) setActionsPerformed(result.actionsPerformed);
+      if (result.tokenUsage) setTokenUsage(result.tokenUsage);
 
       setAnalysisPhase("completed");
       setIsAnalyzing(false);
@@ -306,6 +297,25 @@ export const AiDataCleaning: React.FC = () => {
       {/* Show analysis results */}
       {analysisPhase === "completed" && (
         <div className="flex flex-col gap-4">
+          {tokenUsage && (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-lg font-semibold mb-2">Tokens analysis</h3>
+              <div className="grid grid-cols-3 gap-4 p-2 bg-gray-50 rounded-md">
+                <div className="text-sm">
+                  <span className="font-medium">Input tokens:</span>{" "}
+                  {tokenUsage.inputTokens}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Output tokens:</span>{" "}
+                  {tokenUsage.outputTokens}
+                </div>
+                <div className="text-sm">
+                  <span className="font-medium">Total cost:</span> $
+                  {tokenUsage.totalCost.toFixed(4)}
+                </div>
+              </div>
+            </div>
+          )}
           {!!actionsPerformed.length && (
             <div className="mt-6 p-4 border rounded-lg bg-white">
               <h3 className="text-lg font-semibold mb-2">Actions performed</h3>

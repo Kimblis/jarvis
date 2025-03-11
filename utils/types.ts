@@ -299,3 +299,9 @@ export type Source = {
   metadata: SourceMetadata;
   pageContent: string;
 };
+
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalCost: number;
+}

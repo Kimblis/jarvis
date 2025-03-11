@@ -91,13 +91,14 @@ export const analysisIssueSchema = z.object({
     .describe("Indexes of rows affected by this issue"),
   column: z.string().describe("Column affected by this issue"),
   severity: z.enum(["low", "medium", "high"]).describe("Severity of the issue"),
-  action: z.enum(["fix", "flag"]).describe("Action to take"),
+  action: z.enum(["fix", "flag", "remove"]).describe("Action to take"),
 });
 
 export const analysisSchema = z.object({
   issues: z
     .array(analysisIssueSchema)
     .describe("List of data quality issues found"),
+  error: z.string().describe("Error message if there is an error").optional(),
 });
 
 export const actionSchema = z.object({

@@ -8,6 +8,7 @@ import React, {
   SetStateAction,
 } from "react";
 import { Action, FlaggedRow, Organizations } from "@/utils/schemas";
+import { TokenUsage } from "@/utils/types";
 
 interface DataCleanerContextType {
   rawData: any[];
@@ -24,6 +25,8 @@ interface DataCleanerContextType {
   setActionsPerformed: Dispatch<SetStateAction<Action[]>>;
   validationInProgress: boolean;
   setValidationInProgress: Dispatch<SetStateAction<boolean>>;
+  tokenUsage: TokenUsage;
+  setTokenUsage: Dispatch<SetStateAction<TokenUsage>>;
 }
 
 // Create context with default undefined value
@@ -34,6 +37,11 @@ const DataCleanerContext = createContext<DataCleanerContextType | undefined>(
 // Provider component
 export const DataCleanerProvider = ({ children }: { children: ReactNode }) => {
   const [rawData, setRawData] = useState<any[]>([]);
+  const [tokenUsage, setTokenUsage] = useState<TokenUsage>({
+    inputTokens: 0,
+    outputTokens: 0,
+    totalCost: 0,
+  });
   const [processedData, setProcessedData] = useState<Organizations>([]);
   const [columns, setColumns] = useState<string[]>([]);
   const [isDataLoaded, setIsDataLoaded] = useState<boolean>(false);
@@ -59,6 +67,8 @@ export const DataCleanerProvider = ({ children }: { children: ReactNode }) => {
         setActionsPerformed,
         validationInProgress,
         setValidationInProgress,
+        tokenUsage,
+        setTokenUsage,
       }}
     >
       {children}

@@ -12,6 +12,7 @@ import {
   exerciseResponseSchema,
   ExerciseType,
   ResponseData,
+  SessionInfoResponse,
   SolutionResponse,
 } from "./types";
 import { inngest } from "@/inggest/inngest.client";
@@ -21,7 +22,6 @@ import {
   solutionPromptTemplateStr,
 } from "./prompts";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
-import { z } from "zod";
 
 const supabaseClient = createClient(
   process.env.SUPABASE_URL!,
@@ -131,6 +131,26 @@ export const loadAlgebraSolution = async (sessionId: string) => {
   return { elements, skills };
 };
 
+export const loadAlgebraSessionInfo = async (sessionId: string) => {
+  const sessionInfo = await fetch("https://api.algebrakit.com/session/info", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": process.env.ALGEBRAKIT_API_KEY as string,
+    },
+    body: JSON.stringify({
+      sessionId,
+    }),
+  });
+
+  if (!sessionInfo.ok) {
+    throw new Error(`Error: ${sessionInfo.status} ${sessionInfo.statusText}`);
+  }
+
+  const data = (await sessionInfo.json()) as SessionInfoResponse;
+  return data.elements;
+};
+
 const retrieveAlgebraDataBySubjectId = async (subjectId: string) => {
   const username = process.env.ALGEBRAKIT_CMS_USERNAME as string;
   const password = process.env.ALGEBRAKIT_CMS_PASS as string;
@@ -225,7 +245,7 @@ const parseTags = (input: string): string[] => {
   return parts.map((tag) => tag.replace(/^"|"$/g, "").trim().toLowerCase());
 };
 
-const retrieveExerciseType = async (
+const retrieveExerciseTypes = async (
   exerciseId: string,
 ): Promise<ExerciseType[]> => {
   const publishedInfo = await fetch(
@@ -264,14 +284,17 @@ const retrieveExerciseType = async (
   ].filter(Boolean);
 };
 
-const retrieveExerciseAIData = async (exerciseId: string) => {
+const retrieveExerciseAIData = async (
+  exerciseId: string,
+  exerciseType: ExerciseType,
+) => {
   const sessionId = await initializeAlgebraSession(exerciseId);
   const exerciseText = await loadAlgebraExerciseText(sessionId);
   const solutionElementsWithSkills = await loadAlgebraSolution(sessionId);
   let solutionText = "";
   if (solutionElementsWithSkills?.elements.length) {
     const prompt = ChatPromptTemplate.fromTemplate(solutionPromptTemplateStr);
-    const llm = new ChatOpenAI({ temperature: 0 });
+    const llm = new ChatOpenAI({ temperature: 0, model: "gpt-4o" });
     const chain = prompt.pipe(llm);
     const response = await chain.invoke({
       sessionJson: JSON.stringify(solutionElementsWithSkills.elements),
@@ -281,17 +304,18 @@ const retrieveExerciseAIData = async (exerciseId: string) => {
   const prompt = ChatPromptTemplate.fromTemplate(exercisePromptTemplateStr);
   const llm = new ChatOpenAI({
     temperature: 0,
-    model: "gpt-4o-2024-08-06",
+    model: "gpt-4o",
   }).withStructuredOutput(exerciseResponseSchema, {
     method: "jsonSchema",
     strict: true,
   });
   const chain = prompt.pipe(llm);
-  const response = await chain.invoke({ exerciseText });
+  const response = await chain.invoke({ exerciseText, type: exerciseType });
 
   const formattedResponse = {
     ...response,
     solution: solutionText,
+    exerciseType,
   };
 
   const embeddings = new OpenAIEmbeddings();
@@ -332,7 +356,7 @@ const seedAlgebraExercises = async (
       const tags = tagsMetadata ? parseTags(tagsMetadata) : [];
 
       if (!exerciseTypes.length) {
-        exerciseTypes = await retrieveExerciseType(id);
+        exerciseTypes = await retrieveExerciseTypes(id);
       }
 
       if (trialTestType) {
@@ -340,6 +364,7 @@ const seedAlgebraExercises = async (
       }
 
       if (
+        exerciseTypes.length > 1 ||
         exerciseTypes.includes(ExerciseType.GEOMETRY) ||
         exerciseTypes.includes(ExerciseType.MATH_TABLE) ||
         exerciseTypes.includes(ExerciseType.MODEL_METHOD) ||
@@ -351,14 +376,14 @@ const seedAlgebraExercises = async (
         return;
       }
 
+      const exerciseType = exerciseTypes[0];
+
       const exerciseMetadata = {
         tags,
-        difficultyLevel,
         isALevel,
         isHidden,
-        exerciseTypes,
       };
-      const aiData = await retrieveExerciseAIData(id);
+      const aiData = await retrieveExerciseAIData(id, exerciseType);
       if (!aiData) {
         console.log(`not gonna insert exercise ${id} because aiData is null`);
         return;
@@ -369,6 +394,7 @@ const seedAlgebraExercises = async (
           id,
           stationId,
           metadata: exerciseMetadata,
+          difficultyLevel,
           ...aiData,
         },
         { onConflict: "id" },
@@ -394,8 +420,8 @@ const retrieveStationAndNuggetExercises = async (
 
 export const syncAlgebraExercises = async () => {
   const courseIds = [
-    "656256bc-8baf-4720-b6bc-44db87b5dfd7",
-    // "bea29669-03bf-48a3-981e-e905ed305cb5",
+    // "656256bc-8baf-4720-b6bc-44db87b5dfd7",
+    "bea29669-03bf-48a3-981e-e905ed305cb5",
     // "13103c80-b43c-4833-be2c-72585a548dfd",
     // "8a79ddc2-d0a3-486e-863c-272ea5f7cf49",
     // "e34fd4db-0773-4b9b-a52f-7ec5cbf1ac3e",

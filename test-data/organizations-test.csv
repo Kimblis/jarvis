@@ -1,0 +1,46 @@
+name,industry,regCode,vatCode,country,type,address.firstLine,address.city,address.postalCode
+"Baltic Accounting Services",accounting,123456789,LT100001234567,Lithuania,UAB - Uždaroji akcinė bendrovė,"Gedimino pr. 1",Vilnius,01103
+"Baltic Accounting Services",accounting,123456789,LT100001234567,Lithuania,UAB,"Gedimino pr. 1",Vilnius,01103
+"Tallinn Finances",accounting,EE12345678,100003456,Estonia,AS,Narva mnt 7,Tallinn,10117
+"Riga Business Solutions",accounting,40001234567,LV40001234567,Latvia,SIA,"Brivibas iela 33",Riga,LV-1050
+"InvestGroup Lithuania",other,987654321,987654321,Lithuania,UAB,"Vilniaus g. 10",Kaunas,44001
+"Creative Designs",,567890123,,"Lithuania",LLC,"Laisvės al. 5",Kaunas,44280
+"Tech Solutions",other,789012345,,Lithuania,UAB - uždaroji akcinė bendrove,"Konstitucijos pr. 7",,09308
+"Baltic Retail",other,678901234,LT678901234,Lithuania,AB - akcine bendrove,"Gedimino pr. 9",Vilnius,01103
+"Baltic Retail",other,678901234,LT678901234,Lithuania,AB,"Gedimino pr. 9",Vilnius,01103
+"Latvian Logistics",other,LV50001234568,50001234568,Latvia,"SIA","Brivibas iela 100",Riga,
+"Smart Solutions",other,234567890,234567890,Lithuania,Mažoji Bendrija,"A. Smetonos g. 2",Vilnius,01115
+"Global Transport",other,345678901,,Lithuania,Individuali įmonė,"Savanorių pr. 1",Vilnius,03116
+"Estonian Digital Services",other,EE98765432,EE98765432,Estonia,,"Tartu mnt 10",Tallinn,10117
+"Consulting Pro",accounting,456789012,LT456789012,,"TUB","Pylimo g. 5",Vilnius,01118
+"Estonian Retail Store",other,,,Estonia,OÜ,"Pärnu mnt 15",Tallinn,10118
+"Local Cafe",other,567890124,,Lithuania,FA,"Pilies g. 23",Vilnius,01124
+"Construction Solutions",other,678901235,100005678,Latvia,AS,"Kr. Barona iela 25",Riga,LV-1011
+"Security Services",accounting,789012346,789012346,Lithuania,INVALID TYPE,"Konstitucijos pr. 9",Vilnius,09307
+"Educational Center",other,890123457,,Lithuania,VĮ - Valstybės imonė,"Universiteto g. 3",Vilnius,01513
+"IT Experts",other,901234568,LT901234568,Lithuania,AB - Bad Format,"Gedimino pr. 24",Vilnius,01103
+"Latvian Goods Trading",other,LV60001234569,LV60001234569,Latvia,SIA,"Terbatas iela 30",Riga,LV-1011
+"Baltic Travel Agency",other,321987654,LT321987654,Lithuania,UAB,"Konstitucijos pr. 20",Vilnius,09308
+"Fast Delivery",other,432198765,432198765,Lithuania,MB,"A. Juozapavičiaus g. 6",Vilnius,09310
+"Professional Services",accounting,543219876,,Lithuania,UAB,"Vytauto g. 1",Kaunas,44320
+"Baltic Media Group",other,654321987,,Lithuania,AB,"Jogailos g. 4",Vilnius,01116
+"Baltic Media Group",other,654321987,,Lithuania,AB,"Jogailos g. 4",Vilnius,01116
+"Baltic Media Group",other,654321987,,Lithuania,AB,"Jogailos g. 4",Vilnius,01116
+"Event Planning",other,765432198,,Lithuania,,,Vilnius,01107
+"Art Studio",other,,LT987654321,Lithuania,FA,"Pilies g. 8",Vilnius,01123
+"Estonian Consulting",accounting,EE30001234567,30001234567,Estonia,OÜ,,,
+"Baltic Accounting Services",accounting,123456789,123456789,Latvia,SIA,"Kalku iela 15",Riga,LV-1050
+"Digital Marketing Agency",other,135792468,LT135792468,Lithuania,MB - maŽoji bendrija,"Konstitucijos pr. 15",Vilnius,09308
+"Food Processing",other,246813579,246813579,Lithuania,ŽŪB,"Pergalės g. 5",Kaunas,44295
+"Transportation Services",other,369258147,,Lithuania,IĮ,"Savanorių pr. 28",Klaipėda,91127
+"Legal Consultancy",accounting,482715936,482715936,Lithuania,PB,"Gedimino pr. 35",Vilnius,01109
+"Data Analysis",other,593826174,593826174,Lithuania,UAB-123,"Kalvarijų g. 2",Vilnius,09309
+"Manufacturing Industries",other,617283945,LT617283945,Lithuania,Uždaroji akcinė bendrovė,"Pramonės pr. 8",Kaunas,51267
+"Healthcare Services",other,728394615,728394615,Lithuania,VĮ Valstybės įmonė,"Laisvės pr. 3",Vilnius,07160
+"Financial Advisory",accounting,839465712,LT839465712,Lithuania,UAB uždaroji akcinė bendrovė,"Konstitucijos pr. 12",Vilnius,09308
+"Real Estate Agency",other,951648273,951648273,Lithuania,IĮ - Individuali įmonė,"Gedimino pr. 18",Vilnius,01103
+"Baltic Insurance",other,753864209,LT753864209,Lithuania,DB,"Konstitucijos pr. 21",Vilnius,09308
+"International Trade",other,864209753,864209753,Lithuania,F,"Konstitucijos pr. 7",Vilnius,09308
+"Municipal Services",other,975310864,975310864,Lithuania,SĮ,"Laisvės al. 96",Kaunas,44250
+"Partnership Firm",other,086421975,086421975,Lithuania,TŪB,"Gedimino pr. 44",Vilnius,01110
+"Agricultural Cooperative",other,197532086,197532086,Lithuania,ŽŪB - žemės ūkio bendrovė,"Žemdirbių g. 5",Vilnius,01120 

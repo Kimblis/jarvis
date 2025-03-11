@@ -28,6 +28,7 @@ export default function RootLayout({
               <nav className="flex gap-1 flex-col md:flex-row">
                 <ActiveLink href="/">Jarvis</ActiveLink>
                 <ActiveLink href="/assessments">Assessments</ActiveLink>
+                <ActiveLink href="/data-cleaner">CSV Parser</ActiveLink>
               </nav>
             </div>
           </div>

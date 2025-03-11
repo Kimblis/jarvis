@@ -132,6 +132,27 @@ export interface SolutionResponse {
   tagDescriptions: any;
 }
 
+export interface SessionInfoElement {
+  id: string;
+  type: string;
+  items: SessionInfoItem[];
+}
+
+export interface SessionInfoItem {
+  id?: string;
+  itemType: string;
+  content: string;
+  interactionType?: string;
+  solution?: string;
+  result?: InteractionResult;
+}
+
+export interface SessionInfoResponse {
+  success: boolean;
+  tagDescriptions: any;
+  elements: SessionInfoElement[];
+}
+
 export type ExerciseResponse = {
   text: string;
   solutionText: string;
@@ -142,6 +163,14 @@ export type ExerciseResponse = {
   parameters: Record<string, string>;
   assets: Record<string, string>;
   originalCondition: string;
+};
+
+export type AnsweredSessionResponse = {
+  condition: string;
+  studentSolution: string;
+  studentAnswer: string;
+  scoresTotal: number;
+  scoresEarned: number;
 };
 
 export enum AlgebraExerciseState {
@@ -241,6 +270,14 @@ export const exerciseResponseSchema = z.object({
     .describe(
       `The original condition of the exercise with any extraneous tags, styles, or non-essential content removed. If the exercise includes input fields (e.g., fill in the blanks), append them at the end of the condition separated by spaces using the format "{{input1}} {{input2}} {{input3}}`,
     ),
+});
+
+export const sessionInfoResponseSchema = z.object({
+  condition: z.string().describe("A full, original exercise condition"),
+  studentSolution: z.string().describe("A full student solution solution"),
+  studentAnswer: z.string().describe("Student final answer"),
+  scoresTotal: z.number().describe("Total number of scores for the exercise"),
+  scoresEarned: z.number().describe("Number of scores earned for the exercise"),
 });
 
 export enum AssessmentState {

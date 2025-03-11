@@ -1,0 +1,21 @@
+name,industry,regCode,vatCode,country,type,address.firstLine,address.city,address.postalCode
+Acme Accounting,accounting,REG12345,VAT98765,United States,LLC,123 Main Street,New York,10001
+Global Finance,accounting,REG23456,VAT87654,Canada,Corporation,456 Finance Ave,Toronto,M5V 2H1
+DataCorp Solutions,other,REG34567,,United Kingdom,Ltd,789 Tech Road,London,EC1A 1BB
+Smith & Associates,accounting,REG45678,VAT76543,Australia,Partnership,321 Business Blvd,Sydney,2000
+NextGen Industries,other,REG56789,VAT65432,Germany,GmbH,654 Innovation Strasse,Berlin,10115
+Acme Accounting,accounting,REG12345,VAT98765,United States,LLC,123 Main Street,New York,10001
+TechSavvy Enterprises,,REG67890,VAT54321,Japan,KK,987 Digital Lane,Tokyo,100-0001
+Clear Vision Partners,accounting,REG78901,,France,SARL,246 Vision Street,Paris,75001
+Infinite Solutions,other,REG89012,VAT43210,Italy,SRL,135 Infinity Road,Rome,00100
+EcoFriendly Products,other,REG90123,,Spain,SA,864 Green Avenue,Madrid,28001
+Financial Experts Group,accounting,REG01234,VAT32109,Netherlands,BV,579 Expert Lane,Amsterdam,1012
+Quantum Technologies,other,REG12345,,Sweden,AB,802 Quantum Drive,Stockholm,10044
+Reliable Consulting,accounting,REG23456,VAT21098,Switzerland,AG,913 Reliable Way,Zurich,8001
+Dynamic Solutions Inc.,other,REG34567,VAT10987,Belgium,NV,624 Dynamic Court,Brussels,1000
+Premier Services,accounting,REG45678,,Ireland,Ltd,735 Premier Plaza,Dublin,D01
+Global Vision,,REG56789,VAT09876,Denmark,A/S,846 Global Road,Copenhagen,1050
+Innovative Systems,other,REG67890,VAT98765,Norway,AS,957 Innovation Path,Oslo,0301
+Precision Analytics,accounting,REG78901,,Finland,Oy,268 Precision Street,Helsinki,00100
+Forward Thinking Co.,other,REG89012,VAT87654,Austria,GmbH,379 Forward Avenue,Vienna,1010
+Strategic Partners,accounting,REG90123,VAT76543,Poland,Sp. z o.o.,480 Strategy Road,Warsaw,00-001 

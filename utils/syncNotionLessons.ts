@@ -1,8 +1,10 @@
 import { inngest } from "@/inggest/inngest.client";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { Client } from "@notionhq/client";
 import { GetPageResponse } from "@notionhq/client/build/src/api-endpoints";
 import { createClient } from "@supabase/supabase-js";
+import { summaryTemplateStr, textCleaningTemplateStr } from "./prompts";
 
 const NOTION_LESSONS_DATABASEID = "2fc21ed7f56a473383c58032fbf4961d";
 
@@ -195,8 +197,31 @@ export const syncNotionStationsBatched = async (
         );
 
         const text = textNuggets.join("\n");
+
+        const cleanUpPrompt = ChatPromptTemplate.fromTemplate(
+          textCleaningTemplateStr,
+        );
+        const summaryPrompt =
+          ChatPromptTemplate.fromTemplate(summaryTemplateStr);
+
+        const llm = new ChatOpenAI({
+          temperature: 0,
+          model: "gpt-4o",
+        });
+
+        const chain = cleanUpPrompt.pipe(llm);
+        const summaryChain = summaryPrompt.pipe(llm);
+
+        const cleanedUpResponse = await chain.invoke({ text });
+        const summaryResponse = await summaryChain.invoke({ text });
+
         const embeddingsModel = new OpenAIEmbeddings();
-        const embeddingVector = await embeddingsModel.embedQuery(text);
+        const embeddingVector = await embeddingsModel.embedQuery(
+          cleanedUpResponse.content as string,
+        );
+        const summaryEmbeddingVector = await embeddingsModel.embedQuery(
+          summaryResponse.content as string,
+        );
         console.log(
           `created embedding vector for ${title}, vector length: ${embeddingVector.length}`,
         );
@@ -205,7 +230,10 @@ export const syncNotionStationsBatched = async (
             id,
             title,
             lessonId,
+            text: cleanedUpResponse.content as string,
+            summary: summaryResponse.content as string,
             embedding: embeddingVector,
+            summaryEmbedding: summaryEmbeddingVector,
           },
           { onConflict: "id" },
         );
@@ -269,6 +297,7 @@ export const syncNotionStations = async (
       textNuggets.push(text);
     }
     const text = textNuggets.join("\n");
+    console.log(text);
     const embeddingsModel = new OpenAIEmbeddings();
     const embeddingVector = await embeddingsModel.embedQuery(text);
     console.log(
@@ -342,6 +371,7 @@ export const syncNotionLessons = async () => {
 };
 
 export const syncNotionLessonByPageId = async (pageId: string) => {
+  console.log(`syncing lesson ${pageId}`);
   const response = await notion.pages.retrieve({ page_id: pageId });
   const { properties } = response as any;
   const id: string = properties.Id?.formula?.string;

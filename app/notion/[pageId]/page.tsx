@@ -22,6 +22,7 @@ const NotionPage = () => {
           throw new Error(`Failed to fetch data: ${res.statusText}`);
         }
         const data = await res.json();
+
         setText(data.text);
       } catch (error: any) {
         setError(error.message);

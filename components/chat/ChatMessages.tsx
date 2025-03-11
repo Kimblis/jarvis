@@ -1,5 +1,4 @@
 import { Message } from "ai";
-import { IntermediateStep } from "./IntermediateStep";
 import { ChatMessageBubble } from "./ChatMessageBubble";
 import { Source } from "@/utils/types";
 
@@ -17,10 +16,6 @@ export const ChatMessages = ({
   return (
     <div className="flex flex-col max-w-[768px] mx-auto pb-12 w-full">
       {messages.map((m, i) => {
-        if (m.role === "system") {
-          return <IntermediateStep key={m.id} message={m} />;
-        }
-
         return (
           <ChatMessageBubble
             key={m.id}

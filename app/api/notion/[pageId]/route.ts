@@ -41,6 +41,7 @@ export const POST = async (
   }
 
   try {
+    console.log(`syncing lesson ${pageId}`);
     await syncNotionLessonByPageId(pageId);
     return NextResponse.json({ message: "Lesson synced" }, { status: 200 });
   } catch (error) {

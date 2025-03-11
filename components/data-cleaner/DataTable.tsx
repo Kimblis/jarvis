@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useDataCleaner } from "@/context/DataCleanerContext";
 import { Organization } from "@/utils/schemas";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 
 interface DataTableProps {
   pageSize?: number;
@@ -69,13 +75,13 @@ export const DataTable: React.FC<DataTableProps> = ({ pageSize = 10 }) => {
   };
 
   // Get row class to highlight flagged rows
-  const getRowClass = (rowIndex: number) => {
+  const getRowClass = (organization: Organization) => {
     const isFlagged = flaggedRows?.some(
-      (record) => record.rowIndex === rowIndex,
+      (record) => record.rowIndex === organization.index,
     );
 
     return isFlagged
-      ? "border-l-4 border-red-500 hover:bg-red-50"
+      ? "border-l-4 !border-red-500 hover:bg-red-50"
       : "hover:bg-gray-50";
   };
 
@@ -103,45 +109,59 @@ export const DataTable: React.FC<DataTableProps> = ({ pageSize = 10 }) => {
           <tbody className="bg-white divide-y divide-gray-200">
             {paginatedData.map((row, rowIndex) => {
               const offsetRowIndex = offset + rowIndex;
+              const rowFlags = flaggedRows.filter(
+                (fr) => fr.rowIndex === row.index,
+              );
+              const flagColumns = rowFlags.flatMap((rf) => rf.columns);
+              const allColumnsAffected =
+                flagColumns.length === columns.length ||
+                flagColumns?.some((col) => col.column === "all");
               return (
-                <tr
-                  key={`row-${offsetRowIndex}`}
-                  className={getRowClass(offsetRowIndex)}
-                >
-                  {columns.map((column) => (
-                    <td
-                      key={`${column}-${offsetRowIndex}`}
-                      className={`px-6 py-4 whitespace-nowrap text-sm ${getCellClass(
-                        column,
-                        row,
-                      )}`}
-                    >
-                      <div className="flex items-center">
-                        {/* Display warning icon for flagged fields */}
-                        {flaggedRows?.some(
-                          (record) =>
-                            record.rowIndex === offset + rowIndex &&
-                            record.columns.some((c) => c.column === column),
-                        ) && (
-                          <span
-                            className="mr-1 text-red-500"
-                            title="This field has issues"
-                          >
-                            ⚠️
-                          </span>
-                        )}
+                <tr key={`row-${offsetRowIndex}`} className={getRowClass(row)}>
+                  {columns.map((column) => {
+                    const columnFlag = flagColumns.find(
+                      (cf) => cf.column === column || cf.column === "all",
+                    );
 
-                        {/* Display the value */}
-                        {
-                          //@ts-ignore
-                          row[column] === null || row[column] === undefined
-                            ? "-"
-                            : //@ts-ignore
-                              String(row[column])
-                        }
-                      </div>
-                    </td>
-                  ))}
+                    return (
+                      <td
+                        key={`${column}-${offsetRowIndex}`}
+                        className={`px-6 py-4 whitespace-nowrap text-sm text-black ${getCellClass(
+                          column,
+                          row,
+                        )}`}
+                      >
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger disabled={!columnFlag}>
+                              <div className="flex items-center">
+                                {columnFlag && !allColumnsAffected && (
+                                  <span
+                                    className="mr-1 text-red-500"
+                                    title="This field has issues"
+                                  >
+                                    ⚠️
+                                  </span>
+                                )}
+                                {
+                                  //@ts-ignore
+                                  row[column] === null ||
+                                  //@ts-ignore
+                                  row[column] === undefined
+                                    ? "-"
+                                    : //@ts-ignore
+                                      String(row[column])
+                                }
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent hidden={!columnFlag}>
+                              {columnFlag?.reason}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </td>
+                    );
+                  })}
                 </tr>
               );
             })}

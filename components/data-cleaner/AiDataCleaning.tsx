@@ -105,6 +105,8 @@ export const AiDataCleaning: React.FC = () => {
 
   // Add error message state
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  console.log(processedData);
+  console.log(flaggedRows);
 
   const analysisTexts = [
     "Analyzing your data structure...",
@@ -239,9 +241,10 @@ export const AiDataCleaning: React.FC = () => {
 
         // Add notes column for flagged records
         if (type === "flagged") {
-          const flaggedRow = flaggedRows.find((r) => r.rowIndex === row.index);
-          if (flaggedRow) {
-            const notes = flaggedRow.columns
+          const rowFlags = flaggedRows.filter((r) => r.rowIndex === row.index);
+          if (rowFlags.length) {
+            const allColumnsAffected = rowFlags.flatMap((rf) => rf.columns);
+            const notes = allColumnsAffected
               .map((col) => `${col.column} - ${col.reason}`)
               .join("; ");
             rowValues.push(`"${notes.replace(/"/g, '""')}"`);
@@ -301,46 +304,40 @@ export const AiDataCleaning: React.FC = () => {
       )}
 
       {/* Show analysis results */}
-      {analysisResult && analysisPhase === "completed" && (
+      {analysisPhase === "completed" && (
         <div className="flex flex-col gap-4">
-          <div className="mt-6 p-4 border rounded-lg bg-white">
-            <h3 className="text-lg font-semibold mb-2">Analysis Results</h3>
-            {typeof analysisResult === "object" &&
-              "issues" in analysisResult && (
-                <div>
-                  <h4 className="font-medium text-gray-700 mb-1">
-                    Issues Found ({analysisResult.issues.length})
-                  </h4>
-                  <ul className="list-disc pl-5 space-y-1">
-                    {analysisResult.issues.map((issue, index) => (
-                      <li key={index} className="text-sm text-gray-600">
-                        <span
-                          className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                            issue.severity === "high"
-                              ? "bg-red-500"
-                              : issue.severity === "medium"
-                                ? "bg-yellow-500"
-                                : "bg-blue-500"
-                          }`}
-                        ></span>
-                        {issue.description}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            {typeof analysisResult === "string" && (
-              <div className="text-sm text-gray-700 whitespace-pre-line">
-                {analysisResult}
-              </div>
-            )}
-          </div>
           {!!actionsPerformed.length && (
             <div className="mt-6 p-4 border rounded-lg bg-white">
-              <h3 className="text-lg font-semibold mb-2">Cleaning Plan</h3>
+              <h3 className="text-lg font-semibold mb-2">Actions performed</h3>
               <div className="space-y-2">
-                {actionsPerformed.map(
-                  ({ type, description, column }, index) => (
+                {actionsPerformed.map(({ description, column }, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center p-2 rounded bg-green-500 text-white`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span className={`font-medium text-green-700`}>
+                      {`${column} - ${description}`}
+                    </span>
+                  </div>
+                ))}
+                {flaggedRows.map(({ columns, rowIndex }, index) => {
+                  const row = processedData.find((pd) => pd.index === rowIndex);
+
+                  return (
                     <div
                       key={index}
                       className={`flex items-center p-2 rounded bg-green-500 text-white`}
@@ -360,18 +357,17 @@ export const AiDataCleaning: React.FC = () => {
                         />
                       </svg>
                       <span className={`font-medium text-green-700`}>
-                        {`${type} action on column "${column}" - ${description}`}
+                        {`Flagged "${row?.name}": ${columns.map((c) => `${c.column} for ${c.reason}`).join(", ")}`}
                       </span>
                     </div>
-                  ),
-                )}
+                  );
+                })}
               </div>
             </div>
           )}
           <CleaningStatistics />
         </div>
       )}
-
       {/* Action buttons */}
       <div className="mt-8 flex justify-between items-center">
         {/* Add export options */}

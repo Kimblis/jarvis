@@ -5,28 +5,6 @@ export enum OrganizationIndustry {
   OTHER = "other",
 }
 
-export enum OrganizationType {
-  AB = "AB", // Akcinė bendrovė
-  DB = "DB", // Draudimo bendrovė
-  F = "F", // Filialas
-  IĮ = "IĮ", // Individuali įmonė
-  PB = "PB", // Profesinė bendrija
-  SĮ = "SĮ", // Savivaldybės įmonė
-  TŪB = "TŪB", // Tikroji ūkinė bendrija
-  UAB = "UAB", // Uždaroji akcinė bendrovė
-  MB = "MB", // Mažoji bendrija
-  VĮ = "VĮ", // Valstybės įmonė
-  ŽŪB = "ŽŪB", // Žemės ūkio bendrovė
-  FA = "FA", // Fizinis Asmuo
-
-  // Estonian company types
-  AS = "AS", // Aktsiaselts
-  OÜ = "OÜ", // Osaühing
-
-  // Latvian company types
-  SIA = "SIA", // Sabiedrība ar ierobežotu atbildību
-}
-
 export const COUNTRY_CODES = ["Lithuania", "Estonia", "Latvia"] as const;
 export type CountryCode = (typeof COUNTRY_CODES)[number];
 
@@ -36,9 +14,6 @@ export const vatCodeSchema = z
   .nullish()
   .superRefine((val, ctx) => {
     if (!val) return;
-
-    // For now we're just validating that the VAT code exists
-    // Additional validation based on country could be added later
   })
   .transform((val, ctx) => {
     if (!val) return null;
@@ -56,106 +31,6 @@ export const vatCodeSchema = z
   });
 
 // Transform organization type to standardized format
-export const organizationTypeSchema = z.string().transform((val, ctx) => {
-  if (!val) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Organization type is required",
-    });
-    return undefined;
-  }
-
-  // Normalize value - remove accents, lowercase, trim
-  const normalizedVal = val
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
-
-  // Handle full names with abbreviations
-  if (normalizedVal.startsWith("ab - ") || normalizedVal === "akcine bendrove")
-    return OrganizationType.AB;
-  if (
-    normalizedVal.startsWith("db - ") ||
-    normalizedVal === "draudimo bendrove"
-  )
-    return OrganizationType.DB;
-  if (normalizedVal.startsWith("f - ") || normalizedVal === "filialas")
-    return OrganizationType.F;
-  if (
-    normalizedVal.startsWith("įį - ") ||
-    normalizedVal.startsWith("ii - ") ||
-    normalizedVal === "individuali imone"
-  )
-    return OrganizationType.IĮ;
-  if (
-    normalizedVal.startsWith("pb - ") ||
-    normalizedVal === "profesine bendrija"
-  )
-    return OrganizationType.PB;
-  if (
-    normalizedVal.startsWith("sį - ") ||
-    normalizedVal.startsWith("si - ") ||
-    normalizedVal === "savivaldybes imone"
-  )
-    return OrganizationType.SĮ;
-  if (
-    normalizedVal.startsWith("tūb - ") ||
-    normalizedVal.startsWith("tub - ") ||
-    normalizedVal === "tikroji ukine bendrija"
-  )
-    return OrganizationType.TŪB;
-  if (
-    normalizedVal.startsWith("uab - ") ||
-    normalizedVal === "uzdaroji akcine bendrove"
-  )
-    return OrganizationType.UAB;
-  if (normalizedVal.startsWith("mb - ") || normalizedVal === "mazoji bendrija")
-    return OrganizationType.MB;
-  if (
-    normalizedVal.startsWith("vį - ") ||
-    normalizedVal.startsWith("vi - ") ||
-    normalizedVal === "valstybes imone"
-  )
-    return OrganizationType.VĮ;
-  if (
-    normalizedVal.startsWith("žūb - ") ||
-    normalizedVal.startsWith("zub - ") ||
-    normalizedVal === "zemes ukio bendrove"
-  )
-    return OrganizationType.ŽŪB;
-  if (normalizedVal.startsWith("fa - ") || normalizedVal === "fizinis asmuo")
-    return OrganizationType.FA;
-
-  // Handle Estonian company types
-  if (normalizedVal === "as" || normalizedVal === "aktsiaselts")
-    return OrganizationType.AS;
-  if (
-    normalizedVal === "ou" ||
-    normalizedVal === "osaühing" ||
-    normalizedVal === "osuhing"
-  )
-    return OrganizationType.OÜ;
-
-  // Handle Latvian company types
-  if (
-    normalizedVal === "sia" ||
-    normalizedVal === "sabiedrība ar ierobežotu atbildību"
-  )
-    return OrganizationType.SIA;
-
-  // Handle exact matches for abbreviations
-  for (const type of Object.values(OrganizationType)) {
-    if (normalizedVal === type.toLowerCase()) return type;
-  }
-
-  // If we can't determine the type, return the original value
-  ctx.addIssue({
-    code: z.ZodIssueCode.custom,
-    message: `Unknown organization type: ${val}`,
-  });
-  return val;
-});
 
 export const validationError = object({
   organizationIndex: number(),
@@ -173,7 +48,20 @@ export const organizationSchema = object({
   regCode: string(),
   vatCode: vatCodeSchema,
   country: z.enum(COUNTRY_CODES),
-  type: organizationTypeSchema,
+  type: z.enum([
+    "AB",
+    "DB",
+    "F",
+    "IĮ",
+    "PB",
+    "SĮ",
+    "TŪB",
+    "UAB",
+    "MB",
+    "VĮ",
+    "ŽŪB",
+    "FA",
+  ]),
   firstLine: string(),
   city: string(),
   postalCode: string(),
@@ -203,34 +91,24 @@ export const analysisIssueSchema = z.object({
     .describe("Indexes of rows affected by this issue"),
   column: z.string().describe("Column affected by this issue"),
   severity: z.enum(["low", "medium", "high"]).describe("Severity of the issue"),
+  action: z.enum(["fix", "flag"]).describe("Action to take"),
 });
 
 export const analysisSchema = z.object({
   issues: z
     .array(analysisIssueSchema)
     .describe("List of data quality issues found"),
-  summary: z.string().describe("Overall summary of the data quality"),
 });
 
 export const actionSchema = z.object({
-  type: z
-    .enum([
-      "remove_duplicates",
-      "handle_nulls",
-      "handle_outliers",
-      "normalize",
-      "categorical_encoding",
-      "flag_for_change",
-    ])
-    .describe("Type of cleaning action"),
   description: z
     .string()
-    .describe("Description of the action, explain fully what needs to be done"),
-  column: z.string().describe("Column that needs to be cleaned"),
+    .describe("Description of the action, explain what was done"),
+  column: z.string().describe("Column that was cleaned"),
 });
 
 export const flaggedColumnSchema = z.object({
-  column: z.string().describe("Column that needs to be manually cleaned"),
+  column: z.string(),
   reason: z.string().describe("Reason for flagging the column"),
 });
 
@@ -238,7 +116,7 @@ export const flaggedRowSchema = z.object({
   rowIndex: z.number().describe("Index of the flagged row"),
   columns: z
     .array(flaggedColumnSchema)
-    .describe("Columns affected by the issue"),
+    .describe("Columns flagged for manual review"),
 });
 
 export const cleanOrganizationSchema = z.object({
@@ -251,7 +129,9 @@ export const cleanOrganizationSchema = z.object({
 
 export const cleanDataSchema = z.object({
   cleanedData: array(looseOrganizationSchema),
-  actionsPerformed: z.array(actionSchema).describe("List of actions performed"),
+  cleaningActionsPerformed: z
+    .array(actionSchema)
+    .describe("List of cleaning actions performed"),
   flaggedRows: z.array(flaggedRowSchema).describe("List of flagged rows"),
 });
 

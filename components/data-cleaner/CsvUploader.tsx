@@ -38,12 +38,21 @@ export const CsvUploader: React.FC = () => {
       }
 
       const data = results.data;
-      const formattedData = data.map((row: any, index: number) => ({
-        ...row,
-        index,
-      }));
+      const formattedData = data.map((row: any, index: number) => {
+        // Convert all values to strings except for the index
+        const stringifiedRow: Record<string, string | number> = { index };
+
+        // Iterate through all properties and convert them to strings
+        Object.keys(row).forEach((key) => {
+          stringifiedRow[key] =
+            row[key] !== null && row[key] !== undefined ? String(row[key]) : "";
+        });
+
+        return stringifiedRow;
+      });
+
       // First row is headers in our case
-      const headers = Object.keys(data[0]);
+      const headers = ["id", ...Object.keys(data[0])];
 
       setRawData(formattedData);
       setProcessedData(formattedData as Organizations);
@@ -82,8 +91,8 @@ export const CsvUploader: React.FC = () => {
     }
   };
 
-  const transformValue = (value: string) => {
-    return value.trim();
+  const transformValue = (value: string | number) => {
+    return typeof value === "string" ? value.trim() : value.toString().trim();
   };
 
   // Handle Excel files

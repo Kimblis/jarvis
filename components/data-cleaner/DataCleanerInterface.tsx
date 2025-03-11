@@ -26,10 +26,6 @@ export const DataCleanerInterface: React.FC = () => {
           <section className="bg-white rounded-lg shadow-sm p-6">
             <AiDataCleaning />
           </section>
-
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <DataExport />
-          </div>
         </>
       )}
     </div>

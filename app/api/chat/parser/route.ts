@@ -247,6 +247,7 @@ const analyzeData = async (state: typeof ParserStateAnnotation.State) => {
   const updatedOutputTokens = tokenUsage.outputTokens + estimatedOutputTokens;
 
   if (analysis.error) {
+    console.log(`[SERVER] Analysis error: ${analysis.error}`);
     return new Command({
       goto: END,
       update: { error: analysis.error },
@@ -268,6 +269,7 @@ const analyzeData = async (state: typeof ParserStateAnnotation.State) => {
         outputTokens: updatedOutputTokens,
       },
     },
+    goto: "orchestrateCleaning",
   });
 };
 

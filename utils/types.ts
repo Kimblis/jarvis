@@ -301,3 +301,12 @@ export interface TokenUsage {
   outputTokens: number;
   totalCost: number;
 }
+
+export interface MathfieldElement extends HTMLElement {
+  value: string;
+  smartFence: boolean;
+  smartMode: boolean;
+  smartSuperscript: boolean;
+  readonly: boolean;
+  executeCommand: (command: string) => void;
+}

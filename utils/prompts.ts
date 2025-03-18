@@ -81,6 +81,44 @@ Your final output should consist only of the structured format with the fields l
 Begin your exercise breakdown now:
 `;
 
+export const exerciseSyncTemplateStr = `
+You are an AI expert in analyzing math exercises. Your task is to extract and summarize key information from a provided exercise text and its optional type.
+
+Based on the exercise text and any provided type (if type is not provided, determine the exercise type from the text/condition), extract the following details:
+
+- **condition:** A concise summary of what the exercise asks the student to do.
+- **topic:** The main mathematical topic (e.g., linear equations, geometry, vectors).
+- **template:** A generalized version of the exercise with placeholders for variable elements.  
+  For example, if the exercise is "Išspręsk lygtį: $2x - 2 = 14 - 4x$", an appropriate template might be:  
+  "Solve the equation: {{ax}} - {{b}} = {{c}} - {{dx}}"
+- **parameters:** A key-value mapping of numerical or variable values extracted from the exercise.  
+  For example:
+  - a: 2
+  - b: 2
+  - c: 14
+  - d: 4
+- **assets:** A key-value mapping of assets found in the exercise. The key should be a valid URL (pointing to an image or video), and the value should denote the asset type ("image" or "video").
+- **originalCondition:** The original exercise condition with any extraneous tags, styles, or non-essential content removed while retaining all relevant values.
+
+Additional Guidelines:
+- For assets, ensure that the URL is valid and actually links to an image or video extracted from the exercise condition.
+- Preserve the original language for **condition**, **template**, and **originalCondition**.
+- Render all math expressions using proper KaTeX format, including for new lines.
+- **IMPORTANT:** Do not include literal newline characters (e.g., "\\n") in the final output. For new lines within math expressions, use KaTeX newline formatting ("\\\\").
+- If the exercise uses Lithuanian, ensure that Lithuanian letters are encoded correctly.
+
+Formatting Adjustments Based on Exercise Type:
+- **Fill-in-the-Blanks:** Insert placeholders for inputs using the format: {{input1}} {{input2}} {{input3}} … as needed.
+- **Choice/Multiple Choice:**  
+  For exercises with choices, do not include any numbering. Instead, prepend each option with the string '{{choice}}' so that the output looks like:
+{{choice}} firstChoice
+{{choice}} secondChoice
+...
+
+Now, please analyze the following exercise with type: {type} and text:
+{exerciseText}
+`;
+
 export const solutionPromptTemplateStr = `
 You are an expert in analyzing math exercise solutions. Your task is to process a JSON object containing a math exercise solution and it's type extract the original condition, solution steps and correct answer according to the instructions below.
 

@@ -148,20 +148,12 @@ const ExercisePage = () => {
             <div>{exerciseData.template}</div>
           </div>
           <div className="flex gap-2">
-            <span>Parameters</span>
-            <div>{JSON.stringify(exerciseData.parameters)}</div>
-          </div>
-          <div className="flex gap-2">
             <span>Solution text</span>
             <div>{exerciseData.solutionText}</div>
           </div>
           <div className="flex gap-2">
             <span>Solution skills</span>
             <div>{exerciseData.solutionSkills}</div>
-          </div>
-          <div className="flex gap-2">
-            <span>Original condition</span>
-            <div>{exerciseData.originalCondition}</div>
           </div>
           <div className="flex gap-2">
             <span>Assets</span>

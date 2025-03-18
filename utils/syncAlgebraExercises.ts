@@ -19,6 +19,7 @@ import { inngest } from "@/inggest/inngest.client";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import {
   exercisePromptTemplateStr,
+  exerciseSyncTemplateStr,
   solutionPromptTemplateStr,
 } from "./prompts";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
@@ -301,7 +302,7 @@ const retrieveExerciseAIData = async (
     });
     solutionText = response.content as string;
   }
-  const prompt = ChatPromptTemplate.fromTemplate(exercisePromptTemplateStr);
+  const prompt = ChatPromptTemplate.fromTemplate(exerciseSyncTemplateStr);
   const llm = new ChatOpenAI({
     temperature: 0,
     model: "gpt-4o",

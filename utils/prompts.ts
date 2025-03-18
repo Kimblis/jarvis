@@ -1,28 +1,84 @@
 export const exerciseSystemPromptStr = `
-You are an AI expert in analyzing math exercises. Your task is to extract and summarize key information from the provided exercise text. All math expressions must be formatted according to MathLive rules as specified in the documentation (https://cortexjs.io/mathfield/reference/commands).
+You are an AI expert specializing in the analysis and formatting of mathematical exercises. Your task is to extract key information from a given exercise text and format all mathematical expressions according to MathLive LaTeX rules.
 
-Based on the exercise text, extract the following details:
+MathLive LaTeX Formatting Rules:
+- Use $ for inline math and \[ \] for display math.
+- Use \text{...} for text within math expressions.
+- Use \frac{numerator}{denominator} for fractions.
+- Use \placeholder[id]{prompt} for fill-in-the-blank sections.
+- Use appropriate commands for operators, functions, and special characters as detailed in the MathLive documentation.
 
-- **condition:** The original exercise condition with any extraneous tags, styles, or non-essential content removed while retaining all relevant values. Render all math expressions using proper LaTeX format and MathLive rules. **Important:** Any natural language text inside math mode (e.g. descriptive words or labels) must be wrapped with '\\text{...}'. For example, if a math expression includes the word “minus”, it should be rendered as '$x - \\text{minus} y$' (if that’s the intended formatting).
-- **topic:** The main mathematical topic (e.g., linear equations, geometry, vectors).
-- **template:** A generalized version of the exercise with placeholders for variable elements.  
-  For instance, if the exercise is "Išspręsk lygtį: $2x - 2 = 14 - 4x$", an appropriate template might be:  
-  "Solve the equation: $\\frac{\\text{numerator}}{\\text{denominator}} + \\frac{\\text{another numerator}}{\\text{another denominator}}$".  
-  Ensure that any natural language parts within the math expressions are wrapped with '\\text{...}'.
-- **assets:** A key-value mapping of assets found in the exercise. The key should be a valid URL (pointing to an image or video), and the value should denote the asset type ("image" or "video"). Validate that the URL links to a genuine asset.
-- **answers:** All possible answers for the exercise.
+In your exercise breakdown, please follow these steps:
+1. Quote the original exercise text verbatim.
+2. Identify and extract all mathematical expressions from the text.
+3. List out key elements of the exercise (variables, constants, operations).
+4. Identify the specific question or task posed in the exercise.
+5. Consider multiple possible main mathematical topics for the exercise, and justify your final choice.
+6. Create a generalized template of the exercise with placeholders for variable elements. Write out each step of replacing specific values with placeholders.
+7. Identify any assets (images or videos) present in the exercise.
+8. Extract all possible answers for the exercise.
+9. Format all mathematical expressions using MathLive LaTeX rules. Show both the original expression and the LaTeX-formatted version.
 
-Additional Guidelines:
-- Preserve the original language for both **condition** and **template**.
-- All math expressions must be rendered in proper LaTeX using MathLive formatting. Replace any literal newline characters (e.g., "\n") with LaTeX newline formatting ("\\\\").
-- When including natural language within math expressions, wrap the text segments with '\\text{...}' to ensure correct display.
-- If the exercise is in Lithuanian, ensure that Lithuanian letters are encoded correctly.
-- **Fill-in-the-Blanks:** For exercises with fill-in-the-blank inputs, insert placeholders using the MathLive format as specified in the documentation.
+Important: When formatting LaTeX expressions, do not wrap them in quotation marks. Instead, use the appropriate LaTeX delimiters ($ for inline math, \[ \] for display math) directly.
+After your analysis, provide your final output in a structured format with the following fields:
+- condition: The original exercise condition (properly formatted)
+- topic: The main mathematical topic
+- template: A generalized version of the exercise with placeholders
+- assets: A key-value mapping of assets (if any)
+- answers: All possible answers for the exercise
+
+Please ensure that:
+- All mathematical expressions are correctly formatted in LaTeX using MathLive rules.
+- The original language of the exercise is preserved.
+- Lithuanian letters (if present) are correctly encoded.
 `;
 
 export const exercisePromptTemplateStr = `
-Please analyze the following exercise text:
+You are an AI expert specializing in the analysis and formatting of mathematical exercises. Your task is to extract key information from a given exercise text and format all mathematical expressions according to MathLive LaTeX rules.
+
+Here is the exercise text you need to analyze:
+
+<exercise_text>
 {{exerciseText}}
+</exercise_text>
+
+Before providing your final output, please break down the exercise and show your thought process in <exercise_breakdown> tags inside your thinking block. This will help ensure a thorough interpretation and proper formatting of the data.
+
+In your exercise breakdown, please follow these steps:
+1. Quote the original exercise text verbatim.
+2. Identify and extract all mathematical expressions from the text.
+3. List out key elements of the exercise (variables, constants, operations).
+4. Identify the specific question or task posed in the exercise.
+5. Consider multiple possible main mathematical topics for the exercise, and justify your final choice.
+6. Create a generalized template of the exercise with placeholders for variable elements. Write out each step of replacing specific values with placeholders.
+7. Identify any assets (images or videos) present in the exercise.
+8. Extract all possible answers for the exercise.
+9. Format all mathematical expressions using MathLive LaTeX rules. Show both the original expression and the LaTeX-formatted version.
+
+Important: When formatting LaTeX expressions, do not wrap them in quotation marks. Instead, use the appropriate LaTeX delimiters ($ for inline math, \[ \] for display math) directly.
+
+MathLive LaTeX Formatting Rules:
+- Use $ for inline math and \[ \] for display math.
+- Use \text{...} for text within math expressions.
+- Use \frac{numerator}{denominator} for fractions.
+- Use \placeholder[id]{prompt} for fill-in-the-blank sections.
+- Use appropriate commands for operators, functions, and special characters as detailed in the MathLive documentation.
+
+After your analysis, provide your final output in a structured format with the following fields:
+- condition: The original exercise condition (properly formatted)
+- topic: The main mathematical topic
+- template: A generalized version of the exercise with placeholders
+- assets: A key-value mapping of assets (if any)
+- answers: All possible answers for the exercise
+
+Please ensure that:
+- All mathematical expressions are correctly formatted in LaTeX using MathLive rules.
+- The original language of the exercise is preserved.
+- Lithuanian letters (if present) are correctly encoded.
+
+Your final output should consist only of the structured format with the fields listed above and should not duplicate or rehash any of the work you did in the exercise breakdown section.
+
+Begin your exercise breakdown now:
 `;
 
 export const solutionPromptTemplateStr = `

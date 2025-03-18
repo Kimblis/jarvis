@@ -75,10 +75,7 @@ const ExercisePageById = () => {
             <span>Template</span>
             <Latex>{exerciseData.template}</Latex>
           </div>
-          <div className="flex flex-col gap-1">
-            <span>Parameters</span>
-            <div>{JSON.stringify(exerciseData.parameters)}</div>
-          </div>
+
           <div className="flex flex-col gap-1">
             <span>Solution</span>
             <div className="flex flex-col gap-1">
@@ -91,10 +88,7 @@ const ExercisePageById = () => {
             <span>Solution skills</span>
             <div>{exerciseData.solutionSkills}</div>
           </div>
-          <div className="flex flex-col gap-1">
-            <span>Original condition</span>
-            <Latex>{exerciseData.originalCondition}</Latex>
-          </div>
+
           <div className="flex flex-col gap-1">
             <span>Assets</span>
             <div>{JSON.stringify(exerciseData.assets)}</div>

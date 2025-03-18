@@ -1,5 +1,6 @@
 import {
   exercisePromptTemplateStr,
+  exerciseSystemPromptStr,
   solutionPromptTemplateStr,
 } from "@/utils/prompts";
 import {
@@ -8,6 +9,7 @@ import {
   loadAlgebraSolution,
 } from "@/utils/syncAlgebraExercises";
 import { ExerciseResponse, exerciseResponseSchema } from "@/utils/types";
+import { SystemMessage } from "@langchain/core/messages";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { createClient } from "@supabase/supabase-js";
@@ -50,7 +52,11 @@ export const POST = async (
       });
       solutionText = response.content as string;
     }
-    const prompt = ChatPromptTemplate.fromTemplate(exercisePromptTemplateStr);
+    const systemPrompt = new SystemMessage(exerciseSystemPromptStr);
+    const prompt = ChatPromptTemplate.fromMessages([
+      systemPrompt,
+      exercisePromptTemplateStr,
+    ]);
     const llm = new ChatOpenAI({
       temperature: 0,
       model: "gpt-4o-2024-08-06",
@@ -59,18 +65,23 @@ export const POST = async (
       strict: true,
     });
     const chain = prompt.pipe(llm);
-    const response = await chain.invoke({ exerciseText, type: "" });
+    const response = await chain.invoke({ exerciseText });
 
     // const embeddings = new OpenAIEmbeddings();
     // const embeddingVector = await embeddings.embedQuery(
     //   response.content as string,
     // );
+    console.log(response);
 
-    // await supabaseClient.from("exercise").insert({
-    //   ...parsedResponse,
-    //   id: exerciseId,
-    //   embedding: embeddingVector,
-    // });
+    await supabaseClient.from("exercise").upsert(
+      {
+        ...response,
+        id: exerciseId,
+      },
+      {
+        onConflict: "id",
+      },
+    );
 
     return NextResponse.json(
       {

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { string, z } from "zod";
 
 export interface InteractionResult {
   events: any[];
@@ -160,9 +160,7 @@ export type ExerciseResponse = {
   condition: string;
   topic: string;
   template: string;
-  parameters: Record<string, string>;
   assets: Record<string, string>;
-  originalCondition: string;
 };
 
 export type AnsweredSessionResponse = {
@@ -244,7 +242,9 @@ export type AlgebraKitInteractionInfo = {
 export const exerciseResponseSchema = z.object({
   condition: z
     .string()
-    .describe("A concise summary of what the exercise asks the student to do"),
+    .describe(
+      "The original condition of the exercise with any extraneous tags, styles, or non-essential content removed",
+    ),
   topic: z
     .string()
     .describe(
@@ -255,21 +255,17 @@ export const exerciseResponseSchema = z.object({
     .describe(
       `A general form of the exercise with placeholders for variable parts. For instance, if an exercise is "Išspręsk lygtį: $2x - 2 = 14 - 4x$", a possible template might be "Solve the equation: {{ax}} - {{b}} = {{c}} - {{dx}}`,
     ),
-  parameters: z
-    .object({})
-    .catchall(z.union([z.string(), z.number()]))
-    .describe("A key-value mapping of specific values found in the exercise"),
   assets: z
     .object({})
     .catchall(z.enum(["image", "video"]))
     .describe(
       `A key-value mapping of assets found in the exercise. The key should be the URL of an image/video and the value should denote the asset type ("image" or "video")`,
     ),
-  originalCondition: z
-    .string()
-    .describe(
-      `The original condition of the exercise with any extraneous tags, styles, or non-essential content removed. If the exercise includes input fields (e.g., fill in the blanks), append them at the end of the condition separated by spaces using the format "{{input1}} {{input2}} {{input3}}`,
-    ),
+  mathjson: z
+    .object({})
+    .catchall(z.string())
+    .describe(`Condition in MathJSON format.`),
+  answers: z.array(string()),
 });
 
 export const sessionInfoResponseSchema = z.object({

@@ -187,3 +187,31 @@ NOTE:
 
 Here is the text: {text}
     `;
+
+export const evaluateExerciseTemplate = `
+You are an expert mathematics educator tasked with evaluating student answers to math problems. Your goal is to compare it to correct answer and determine whether a given answer is correct or incorrect, regardless of its formatting.
+
+Here is the exercise condition:
+<exercise_condition>
+{condition}
+</exercise_condition>
+
+Here is the student's answer:
+<student_answer>
+{answer}
+</student_answer>
+
+And here is the correct answer:
+<correct_answer>
+{correctAnswer}
+</correct_answer>
+
+Please follow these steps to evaluate the answer:
+
+1. Compare the student's answer to the correct answer.
+2. Determine if the student's answer is correct or incorrect.
+
+Important notes:
+- Disregard the formatting of the answer; focus only on the mathematical correctness.
+- The answer must be either fully correct or incorrect; there is no partial correctness.
+`;

@@ -29,6 +29,7 @@ export default function RootLayout({
                 <ActiveLink href="/">Jarvis</ActiveLink>
                 <ActiveLink href="/assessments">Assessments</ActiveLink>
                 <ActiveLink href="/data-cleaner">CSV Parser</ActiveLink>
+                <ActiveLink href="/protau">PROTAU</ActiveLink>
               </nav>
             </div>
           </div>

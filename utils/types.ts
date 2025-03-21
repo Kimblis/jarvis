@@ -310,3 +310,7 @@ export interface MathfieldElement extends HTMLElement {
   readonly: boolean;
   executeCommand: (command: string) => void;
 }
+
+export const evaluateExerciseResponseSchema = z.object({
+  isCorrect: z.boolean().describe("Whether the student's answer is correct"),
+});

@@ -1,70 +1,86 @@
 "use client";
 
-import { MathfieldElement } from "@/utils/types";
-import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { v4 as uuidv4 } from "uuid";
+import { useEffect, useState } from "react";
+import {
+  CompletionSummary,
+  ExerciseList,
+  Exercise,
+} from "@/components/exercises";
 
-// Import MathLive dynamically with no SSR
-const MathLiveImport = dynamic(
-  () => import("mathlive").then(() => ({ default: () => null })),
-  { ssr: false },
-);
+const exercisesMocks: Exercise[] = [
+  {
+    id: uuidv4(),
+    condition: `\\text{Su kuriomis }k\\text{ reikšmėmis lygtis }kx+k+x^2=0\\text{ turi du sprendinius?}`,
+    answer: "k<0 or k>4",
+    type: "open-input",
+  },
+  {
+    id: uuidv4(),
+    condition: `\\text{Kiek bus }2+2\\text{?}`,
+    answer: "4",
+    type: "open-input",
+  },
+  {
+    id: uuidv4(),
+    condition: `\\text{Pasirink teisingą variantą } 2+2=?`,
+    answer: "B",
+    type: "choice",
+    options: [
+      { letter: "A", value: "2" },
+      { letter: "B", value: "4" },
+      { letter: "C", value: "6" },
+      { letter: "D", value: "8" },
+    ],
+  },
+  {
+    id: uuidv4(),
+    condition: `\\text{Kurios lygybės yra teisingos? }`,
+    answer: "A,C",
+    type: "multiple-choice",
+    options: [
+      {
+        letter: "A",
+        value: "2 > 1",
+      },
+      {
+        letter: "B",
+        value: "2 < 1",
+      },
+      {
+        letter: "C",
+        value: "4 > 3",
+      },
+      {
+        letter: "D",
+        value: "4 < 3",
+      },
+    ],
+  },
+];
 
 const Protau = () => {
-  const searchParams = useSearchParams();
-  const exerciseId =
-    searchParams.get("id") || "1a0e8aab-3c6f-4593-9f48-d3efd3f84ba2";
-
-  // For the exercise content
-  const [exercise, setExercise] = useState({ question: "", answers: [] });
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [allCompleted, setAllCompleted] = useState(false);
+  const [completedExercises, setCompletedExercises] = useState<string[]>([]);
 
-  // For the user input
-  const [value, setValue] = useState("");
-  const [inputValue, setInputValue] = useState("");
-
-  // For submission feedback
-  const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<{
-    isCorrect?: boolean;
-    message: string;
-    correctAnswer?: string;
-  } | null>(null);
-
-  // Refs for both mathfields
-  const exerciseMf = useRef<MathfieldElement>(null);
-  const userInputMf = useRef<MathfieldElement>(null);
-  const correctAnswerMf = useRef<MathfieldElement>(null);
-
-  // Fetch exercise data
+  // Fetch exercises data - using mock for now
   useEffect(() => {
-    const fetchExercise = async () => {
+    const fetchExercises = async () => {
       setLoading(true);
       setError(null);
-      setFeedback(null);
 
       try {
-        const response = await fetch(`/api/exercise?id=${exerciseId}`);
+        // Here you would fetch from your API
+        // const response = await fetch('/api/exercises');
+        // const data = await response.json();
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to fetch exercise");
-        }
-
-        const data = await response.json();
-
-        setExercise({
-          question: data.condition || "\\text{Question not available}",
-          answers: data.answers || "",
-        });
-
-        // Set the initial user input to empty
-        setValue("");
-        setInputValue("");
+        // Using mock data for now
+        setExercises(exercisesMocks);
       } catch (err) {
-        console.error("Error in fetching exercise:", err);
+        console.error("Error in fetching exercises:", err);
         setError(
           err instanceof Error ? err.message : "An unexpected error occurred",
         );
@@ -73,173 +89,40 @@ const Protau = () => {
       }
     };
 
-    fetchExercise();
-  }, [exerciseId]);
+    fetchExercises();
+  }, []);
 
-  // Configure mathfields
-  useEffect(() => {
-    if (loading) return;
+  const handleCompleteAll = (completed: string[]) => {
+    setAllCompleted(true);
+    setCompletedExercises(completed);
 
-    // Exercise mathfield (read-only)
-    if (exerciseMf.current) {
-      exerciseMf.current.readonly = true;
-      exerciseMf.current.smartFence = true;
-      exerciseMf.current.smartMode = true;
-      exerciseMf.current.smartSuperscript = true;
-    }
-
-    // User input mathfield
-    if (userInputMf.current) {
-      userInputMf.current.smartFence = true;
-      userInputMf.current.smartMode = true;
-      userInputMf.current.smartSuperscript = true;
-    }
-
-    // Correct answer mathfield (if shown)
-    if (correctAnswerMf.current) {
-      correctAnswerMf.current.readonly = true;
-      correctAnswerMf.current.smartFence = true;
-      correctAnswerMf.current.smartMode = true;
-      correctAnswerMf.current.smartSuperscript = true;
-    }
-  }, [loading]);
-
-  // Update user input mathfield when the value changes
-  useEffect(() => {
-    if (!userInputMf.current || value === inputValue) return;
-    userInputMf.current.value = value;
-  }, [value, inputValue]);
-
-  // Handle user input
-  const handleInput = (evt: React.ChangeEvent<HTMLElement>) => {
-    const newValue = (evt.target as any).value;
-    setInputValue(newValue);
-    setValue(newValue);
-
-    // Clear feedback when user starts typing again
-    if (feedback) {
-      setFeedback(null);
-    }
+    console.log("All exercises completed!");
   };
 
-  // Handle answer submission
-  const handleSubmit = async () => {
-    if (!value.trim()) {
-      alert("Please enter your answer");
-      return;
-    }
-
-    setSubmitting(true);
-    setFeedback(null);
-
-    try {
-      const response = await fetch("/api/exercise/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          exerciseId,
-          answer: value,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to submit answer");
-      }
-
-      const result = await response.json();
-
-      setFeedback({
-        isCorrect: result.isCorrect,
-        message: result.isCorrect
-          ? "Correct! Great job! 🎉"
-          : "Not quite right. Check the correct answer below:",
-        correctAnswer: result.correctAnswer,
-      });
-    } catch (err) {
-      console.error("Error submitting answer:", err);
-      setFeedback({
-        isCorrect: false,
-        message: "Error submitting answer. Please try again.",
-      });
-    } finally {
-      setSubmitting(false);
-    }
+  const handleRestart = () => {
+    setAllCompleted(false);
+    setCompletedExercises([]);
   };
 
   return (
     <div className="w-full p-4 flex flex-col gap-4 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-2">Math Exercise</h1>
 
-      {/* Load MathLive dynamically */}
-      <MathLiveImport />
-
       {loading ? (
-        <div className="p-4 text-center">Loading exercise...</div>
+        <div className="p-4 text-center">Loading exercises...</div>
       ) : error ? (
         <div className="p-4 text-center text-red-500">{error}</div>
+      ) : allCompleted ? (
+        <CompletionSummary
+          exercises={exercises}
+          completedExercises={completedExercises}
+          onRestart={handleRestart}
+        />
       ) : (
-        <>
-          <div className="bg-gray-100 p-4 rounded-md">
-            <h2 className="font-semibold mb-2">Problem:</h2>
-            <math-field
-              ref={exerciseMf}
-              className="w-full bg-white p-3 rounded-md border"
-              // @ts-ignore
-              readonly
-            >
-              {exercise.question}
-            </math-field>
-          </div>
-
-          <div className="bg-gray-100 p-4 rounded-md">
-            <h2 className="font-semibold mb-2">Your Answer:</h2>
-            <math-field
-              ref={userInputMf}
-              onInput={handleInput}
-              className="w-full bg-white p-3 rounded-md border min-h-[100px]"
-            >
-              {value}
-            </math-field>
-          </div>
-
-          <div className="mt-2 flex justify-between items-center">
-            <code className="bg-gray-100 p-2 rounded">LaTeX: {value}</code>
-            <button
-              onClick={handleSubmit}
-              disabled={submitting}
-              className={`px-4 py-2 ${
-                submitting ? "bg-gray-400" : "bg-blue-500 hover:bg-blue-600"
-              } text-white rounded transition`}
-            >
-              {submitting ? "Submitting..." : "Submit Answer"}
-            </button>
-          </div>
-
-          {feedback && (
-            <div
-              className={`mt-4 p-4 rounded-md ${
-                feedback.isCorrect
-                  ? "bg-green-100 border border-green-300"
-                  : "bg-red-100 border border-red-300"
-              }`}
-            >
-              <p className="font-semibold mb-2">{feedback.message}</p>
-
-              {feedback.correctAnswer && (
-                <div className="mt-2">
-                  <p className="text-sm font-medium mb-1">Correct Answer:</p>
-                  <math-field
-                    ref={correctAnswerMf}
-                    className="w-full bg-white p-3 rounded-md border"
-                  >
-                    {feedback.correctAnswer}
-                  </math-field>
-                </div>
-              )}
-            </div>
-          )}
-        </>
+        <ExerciseList
+          exercises={exercises}
+          onCompleteAll={(completed) => handleCompleteAll(completed)}
+        />
       )}
     </div>
   );

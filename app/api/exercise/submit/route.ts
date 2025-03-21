@@ -1,3 +1,8 @@
+import { Exercise } from "@/components/exercises";
+import { evaluateExerciseTemplate } from "@/utils/prompts";
+import { evaluateExerciseResponseSchema } from "@/utils/types";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -6,62 +11,77 @@ const supabaseUrl = process.env.SUPABASE_URL || "";
 const supabaseKey = process.env.SUPABASE_PRIVATE_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+const checkForSimpleAnswer = (exercise: Exercise, answer: string) => {
+  return answer === exercise.answer;
+};
+
+const checkForMultipleChoiceAnswer = (exercise: Exercise, answer: string) => {
+  const studentAnswers = answer
+    .split(",")
+    .map((a) => a.trim())
+    .sort();
+
+  const correctAnswers = exercise.answer
+    .split(",")
+    .map((a) => a.trim())
+    .sort();
+
+  if (studentAnswers.length !== correctAnswers.length) return false;
+
+  return studentAnswers.every((val, index) => val === correctAnswers[index]);
+};
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { exerciseId, answer } = body;
+    const { exercise, answer } = body;
 
-    if (!exerciseId || !answer) {
+    const { condition, answer: correctAnswer, type } = exercise as Exercise;
+    if (!condition || !answer) {
       return NextResponse.json(
-        { error: "Exercise ID and answer are required" },
+        { error: "Exercise condition and answer are required" },
         { status: 400 },
       );
     }
 
-    // Check if the exercise exists
-    const { data: exercise, error: exerciseError } = await supabase
-      .from("exercise")
-      .select("*")
-      .eq("id", exerciseId)
-      .single();
+    // Check if we can determine correctness without using the LLM
+    let isCorrect = false;
 
-    if (exerciseError) {
-      return NextResponse.json(
-        { error: `Exercise not found: ${exerciseError.message}` },
-        { status: 404 },
-      );
+    const isMultipleChoice = type === "multiple-choice";
+    const isChoice = type === "choice";
+    if (isMultipleChoice) {
+      isCorrect = checkForMultipleChoiceAnswer(exercise, answer);
+    } else {
+      isCorrect = checkForSimpleAnswer(exercise, answer);
+
+      if (!isCorrect && !isChoice) {
+        console.log("Using LLM to evaluate exercise");
+        // For complex answers, use LLM evaluation
+        const prompt = ChatPromptTemplate.fromTemplate(
+          evaluateExerciseTemplate,
+        );
+        const llm = new ChatGoogleGenerativeAI({
+          temperature: 0,
+          model: "gemini-2.0-flash",
+        }).withStructuredOutput(evaluateExerciseResponseSchema, {
+          method: "jsonSchema",
+          strict: true,
+        });
+
+        const chain = prompt.pipe(llm);
+        const response = await chain.invoke({
+          condition,
+          answer,
+          correctAnswer,
+        });
+
+        isCorrect = response.isCorrect;
+      }
     }
-
-    // Store the user's answer
-    // You may want to adjust this based on your actual database schema
-    const { data, error } = await supabase
-      .from("user_answers")
-      .insert({
-        exercise_id: exerciseId,
-        user_answer: answer,
-        submitted_at: new Date().toISOString(),
-        // Add user ID if you have authentication
-        // user_id: userId
-      })
-      .select();
-
-    if (error) {
-      console.error("Error submitting answer:", error);
-      return NextResponse.json(
-        { error: `Failed to submit answer: ${error.message}` },
-        { status: 500 },
-      );
-    }
-
-    // Check if the answer is correct (simplified version)
-    const isCorrect =
-      exercise.answer && answer.trim() === exercise.answer.trim();
 
     return NextResponse.json({
       success: true,
-      submission: data[0],
       isCorrect,
-      correctAnswer: isCorrect ? null : exercise.answer, // Only send correct answer if wrong
     });
   } catch (err) {
     console.error("Unexpected error:", err);

@@ -12,7 +12,8 @@ const exercisesMocks: Exercise[] = [
   {
     id: uuidv4(),
     condition: `\\text{Su kuriomis }k\\text{ reikšmėmis lygtis }kx+k+x^2=0\\text{ turi du sprendinius?}`,
-    answer: "k<0 or k>4",
+    // answer: "k<0 or k>4",
+    answer: "[-∞; 0) ∪ (4; ∞]",
     type: "open-input",
   },
   {

@@ -313,4 +313,9 @@ export interface MathfieldElement extends HTMLElement {
 
 export const evaluateExerciseResponseSchema = z.object({
   isCorrect: z.boolean().describe("Whether the student's answer is correct"),
+  studentMistake: z
+    .string()
+    .describe(
+      "A description of the student's mistake, if the answer is incorrect, what he is missing, why the logic doesnt hold",
+    ),
 });

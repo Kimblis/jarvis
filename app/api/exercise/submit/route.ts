@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
           answer,
           correctAnswer,
         });
+        console.log(response);
 
         isCorrect = response.isCorrect;
       }

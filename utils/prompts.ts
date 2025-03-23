@@ -189,7 +189,7 @@ Here is the text: {text}
     `;
 
 export const evaluateExerciseTemplate = `
-You are an expert mathematics educator tasked with evaluating student answers to math problems. Your goal is to compare it to correct answer and determine whether a given answer is correct or incorrect, regardless of its formatting.
+You are an expert mathematics educator tasked with evaluating student answers to math problems. Your goal is to compare it to correct answer and determine whether a given answer is correct or incorrect, regardless of its formatting, or style of writing.
 
 Here is the exercise condition:
 <exercise_condition>
@@ -212,6 +212,6 @@ Please follow these steps to evaluate the answer:
 2. Determine if the student's answer is correct or incorrect.
 
 Important notes:
-- Disregard the formatting of the answer; focus only on the mathematical correctness.
-- The answer must be either fully correct or incorrect; there is no partial correctness.
+- Disregard the formatting of the answer; focus only on the mathematical correctness. If the main logic holds then the answer is correct, nothing else matters.
+- The answer must be either fully correct or incorrect; there is no partial correctness (in terms of logic).
 `;

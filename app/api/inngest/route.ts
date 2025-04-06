@@ -6,6 +6,8 @@ import { algebraStationsBatchSync } from "@/functions/algebra-stations-batch-syn
 import { algebraStationBatchSync } from "@/functions/algebra-station-batch-sync";
 import { algebraCourseBatchSync } from "@/functions/algebra-course-batch-sync";
 import { algebraSync } from "@/functions/algebra-sync";
+import { seedSessions } from "@/functions/seed-sessions";
+import { seedSessionsBatch } from "@/functions/seed-sessions-batch";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
@@ -16,5 +18,7 @@ export const { GET, POST, PUT } = serve({
     algebraSync,
     algebraStationsBatchSync,
     algebraStationBatchSync,
+    seedSessions,
+    seedSessionsBatch,
   ],
 });

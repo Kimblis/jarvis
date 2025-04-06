@@ -133,16 +133,19 @@ export const loadAlgebraSolution = async (sessionId: string) => {
 };
 
 export const loadAlgebraSessionInfo = async (sessionId: string) => {
-  const sessionInfo = await fetch("https://api.algebrakit.com/session/info", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": process.env.ALGEBRAKIT_API_KEY as string,
+  const sessionInfo = await fetch(
+    "https://venus-api.algebrakit.com/session/info",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": process.env.ALGEBRAKIT_API_KEY as string,
+      },
+      body: JSON.stringify({
+        sessionId,
+      }),
     },
-    body: JSON.stringify({
-      sessionId,
-    }),
-  });
+  );
 
   if (!sessionInfo.ok) {
     throw new Error(`Error: ${sessionInfo.status} ${sessionInfo.statusText}`);

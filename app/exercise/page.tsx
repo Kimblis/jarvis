@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { AnsweredSessionResponse, ExerciseResponse } from "@/utils/types";
 import { useState } from "react";
 import Image from "next/image";
+import Latex from "react-latex-next";
 
 const ExercisePage = () => {
   const [exerciseData, setExerciseData] = useState<ExerciseResponse | null>(
@@ -70,8 +71,9 @@ const ExercisePage = () => {
     return <div>Error: {error}</div>;
   }
 
+  console.log(sessionSolution);
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex flex-col justify-start items-center h-screen gap-5">
       <div className="flex flex-col items-center gap-5">
         <div className="flex flex-col items-center">
           <label htmlFor="exerciseIdInput" className="mb-1">
@@ -107,23 +109,51 @@ const ExercisePage = () => {
       </div>
       {sessionSolution && (
         <div className="flex flex-col gap-2">
-          <div className="flex gap-2">
+          <div className="flex gap-6 items-start border-t">
             <span>Condition</span>
-            <div>{sessionSolution.condition}</div>
+            <div className="flex flex-col gap-2">
+              {sessionSolution.condition
+                .split("{interaction}")
+                .map((interaction, index) => {
+                  return <Latex key={index}>{interaction}</Latex>;
+                })}
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-6 items-center border-t">
             <span>Student solution</span>
-            <div>{sessionSolution.studentSolution}</div>
+            <div className="flex flex-col gap-2">
+              {sessionSolution.studentSolution
+                .split("{interaction}")
+                .map((interaction, index) => {
+                  return <Latex key={index}>{interaction}</Latex>;
+                })}
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-6 items-center border-t">
             <span>Student answer</span>
-            <div>{sessionSolution.studentAnswer}</div>
+            <div className="flex flex-col gap-2">
+              {sessionSolution.studentAnswer
+                .split("{interaction}")
+                .map((interaction, index) => {
+                  return <Latex key={index}>{interaction}</Latex>;
+                })}
+            </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-6 items-center border-t">
+            <span>Correct answer</span>
+            <div className="flex flex-col gap-2">
+              {sessionSolution.correctAnswer
+                .split("{interaction}")
+                .map((interaction, index) => {
+                  return <Latex key={index}>{interaction}</Latex>;
+                })}
+            </div>
+          </div>
+          <div className="flex gap-6 items-center border-t">
             <span>Scores total</span>
             <div>{sessionSolution.scoresTotal}</div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-6 items-center border-t">
             <span>Scores earned</span>
             <div>{sessionSolution.scoresEarned}</div>
           </div>

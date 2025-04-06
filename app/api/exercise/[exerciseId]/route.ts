@@ -38,20 +38,20 @@ export const POST = async (
     console.log("sessionId", sessionId);
 
     const exerciseText = await loadAlgebraExerciseText(sessionId);
-    const solutionElementsWithSkills = await loadAlgebraSolution(sessionId);
+    // const solutionElementsWithSkills = await loadAlgebraSolution(sessionId);
     let solutionText = "";
-    if (solutionElementsWithSkills?.elements.length) {
-      const prompt = ChatPromptTemplate.fromTemplate(solutionPromptTemplateStr);
-      const llm = new ChatOpenAI({
-        temperature: 0,
-        model: "gpt-4o-2024-08-06",
-      });
-      const chain = prompt.pipe(llm);
-      const response = await chain.invoke({
-        sessionJson: JSON.stringify(solutionElementsWithSkills.elements),
-      });
-      solutionText = response.content as string;
-    }
+    // if (solutionElementsWithSkills?.elements.length) {
+    //   const prompt = ChatPromptTemplate.fromTemplate(solutionPromptTemplateStr);
+    //   const llm = new ChatOpenAI({
+    //     temperature: 0,
+    //     model: "gpt-4o-2024-08-06",
+    //   });
+    //   const chain = prompt.pipe(llm);
+    //   const response = await chain.invoke({
+    //     sessionJson: JSON.stringify(solutionElementsWithSkills.elements),
+    //   });
+    //   solutionText = response.content as string;
+    // }
 
     const userMessage = new HumanMessage(
       exercisePromptTemplateStr.replace("{{exerciseText}}", exerciseText),
@@ -59,7 +59,7 @@ export const POST = async (
     const prompt = ChatPromptTemplate.fromMessages([userMessage]);
     const llm = new ChatOpenAI({
       temperature: 0,
-      model: "gpt-4o-2024-08-06",
+      model: "ft:gpt-4o-2024-08-06:elic-jus::BIzIlIFd",
     }).withStructuredOutput(exerciseResponseSchema, {
       method: "jsonSchema",
       strict: true,
@@ -87,7 +87,7 @@ export const POST = async (
       {
         text: exerciseText,
         solutionText,
-        solutionSkills: solutionElementsWithSkills?.skills || "",
+        solutionSkills: [],
         ...response,
       } as ExerciseResponse,
       { status: 200 },

@@ -169,6 +169,7 @@ export type AnsweredSessionResponse = {
   studentAnswer: string;
   scoresTotal: number;
   scoresEarned: number;
+  correctAnswer: string;
 };
 
 export enum AlgebraExerciseState {
@@ -274,6 +275,7 @@ export const sessionInfoResponseSchema = z.object({
   studentAnswer: z.string().describe("Student final answer"),
   scoresTotal: z.number().describe("Total number of scores for the exercise"),
   scoresEarned: z.number().describe("Number of scores earned for the exercise"),
+  correctAnswer: z.string().describe("Correct answer for the exercise"),
 });
 
 export enum AssessmentState {

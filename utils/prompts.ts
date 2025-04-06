@@ -156,6 +156,7 @@ Extract the following details
 - **studentAnswer:** Student final answer.
 - **scoresTotal:** total number of scores for the whole exercise (if there were multiple interactions, add them up).
 - **scoresEarned:** number of scores earned for the whole exercise.
+- **correctAnswer:** correct answer for the exercise.
 
 Additional Guidelines:
 - If condition includes assets (like images) - include their links in the condition. (you can remove all html elements around it)
@@ -163,6 +164,19 @@ Additional Guidelines:
 - Render all math expressions using proper KaTeX format, including for new lines.
 - **IMPORTANT:** Do not include literal newline characters (e.g., "\\n") in the final output. For new lines within math expressions, use KaTeX newline formatting ("\\\\").
 - If the exercise uses Lithuanian, ensure that Lithuanian letters are encoded correctly.
+- If exercise consists of multiple interactions, for properties "condition" and "studentAnswer" before each interaction add {{interaction}} tag, for example:
+
+<example>
+Condition: "Apskaičiuokite:&nbsp; {{interaction}} 1.  $6\\cdot \\frac{{3}}{{4}}= $ &nbsp; <ol><li>$$\\frac{{57}}{{10}}$$</li><li>$$\\frac{{15}}{{4}}$$</li><li>$$\\frac{{21}}{{4}}$$</li><li>$$\\frac{{9}}{{2}}$$</li></ol>&nbsp; {{interaction}} 2.  $- \\left ( 4- 13\\right ) = $ &nbsp; <ol><li>$$\\text{{-}}17$$</li><li>$$9$$</li><li>$$\\text{{-}}9$$</li><li>$$17$$</li></ol>"
+For answers do the same, for example:
+studentAnswer: "{{interaction}} 1. D {{interaction}} 2. B"
+</example>
+
+- If session exercise condition includes list items and is of type choice or multichoice, prefix eact list item with ABC letter. For example 
+<li>A. $$\\text{{-}}9$$</li>
+<li>B. $$\\text{{-}}17$$</li>
+<li>C. $$9$$</li>
+<li>D. $$17$$</li>
 
 Now, please analyze the following session info:
 {sessionInfo}

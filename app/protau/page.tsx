@@ -11,11 +11,25 @@ import {
 const exercisesMocks: Exercise[] = [
   {
     id: uuidv4(),
+    condition:
+      "\\text{Supaprastink lygtį: }2\\left(3x-4\\right)+5\\left(x+2\\right)-3\\left(2x-1\\right)",
+    answer: "5x+5",
+    type: "open-input",
+  },
+  {
+    id: uuidv4(),
+    condition: "\\text{Rask x reikšmę: }x + 3 = x - 2",
+    answer: "∅",
+    type: "open-input",
+  },
+  {
+    id: uuidv4(),
     condition: `\\text{Su kuriomis }k\\text{ reikšmėmis lygtis }kx+k+x^2=0\\text{ turi du sprendinius?}`,
     // answer: "k<0 or k>4",
     answer: "[-∞; 0) ∪ (4; ∞]",
     type: "open-input",
   },
+
   {
     id: uuidv4(),
     condition: `\\text{Kiek bus }2+2\\text{?}`,

@@ -1,9 +1,16 @@
 import { sessionInfoPromptTemplateStr } from "@/utils/prompts";
+import { seedPublicTestSessions } from "@/utils/seedPublicTestSessions";
 import { loadAlgebraSessionInfo } from "@/utils/syncAlgebraExercises";
 import { sessionInfoResponseSchema } from "@/utils/types";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatOpenAI } from "@langchain/openai";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse, NextRequest } from "next/server";
+
+const supabaseClient = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_PRIVATE_KEY!,
+);
 
 export const POST = async (
   req: NextRequest,
@@ -39,6 +46,18 @@ export const POST = async (
     });
     const chain = prompt.pipe(llm);
     const response = await chain.invoke({ sessionInfo: sessionInfoElements });
+
+    await supabaseClient.from("session").upsert(
+      {
+        ...response,
+        id: sessionId,
+      },
+      {
+        onConflict: "id",
+      },
+    );
+
+    await seedPublicTestSessions();
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
